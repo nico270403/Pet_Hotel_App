@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Pet Hotel HappyPaws",
+    "short_description": "Cazare premium pentru câini și pisici, supraveghere 24/7",
+    "long_description": "Curte mare, plimbări zilnice, hrană personalizată, staff instruit.",
+    "address": "Str. Exemplu 10",
+    "city": "Timișoara",
+    "phone": "+40 123 456 789",
+    "email": "contact@happypaws.ro",
+    "price_from": 80,
+    "rating": 4.8,
+    "images": ["https://placedog.net/400/300?id=11"]
+  },
+  {
+    "name": "Cozy Kennel Retreat",
+    "short_description": "Loc cald și liniștit pentru prietenul tău",
+    "long_description": "Supraveghere veterinară la nevoie, curățenie zilnică.",
+    "address": "Str. Linistei 5",
+    "city": "Cluj-Napoca",
+    "phone": "+40 987 654 321",
+    "email": "info@cozykennel.ro",
+    "price_from": 65,
+    "rating": 4.6,
+    "images": ["https://placedog.net/400/300?id=22"]
+  },
+  {
+    "name": "Paw & Stay",
+    "short_description": "Hotel cu camere individuale și play area",
+    "long_description": "Camere izolate, play area și antrenamente ușoare.",
+    "address": "Calea Animalelor 2",
+    "city": "București",
+    "phone": "+40 741 111 222",
+    "email": "hello@pawandstay.ro",
+    "price_from": 70,
+    "rating": 4.7,
+    "images": ["https://placedog.net/400/300?id=33"]
+  },
+  {
+    "name": "GreenTail Pet Resort",
+    "short_description": "Aproape de natură, spații verzi și drumeții",
+    "long_description": "Ideal pentru câini activi. Opțiuni de plimbare extinse.",
+    "address": "Str. Verde 12",
+    "city": "Brașov",
+    "phone": "+40 733 555 666",
+    "email": "contact@greentail.ro",
+    "price_from": 85,
+    "rating": 4.9,
+    "images": ["https://placedog.net/400/300?id=44"]
+  },
+  {
+    "name": "CityPaws Suite",
+    "short_description": "Confort urban pentru animalele tale",
+    "long_description": "Camere moderne, servicii grooming incluse.",
+    "address": "Bd. Central 1",
+    "city": "Iași",
+    "phone": "+40 726 333 444",
+    "email": "book@citypaws.ro",
+    "price_from": 75,
+    "rating": 4.5,
+    "images": ["https://placedog.net/400/300?id=55"]
+  }
+]
