@@ -10,7 +10,6 @@ export const addHotelDirect = async (hotel) => {
   try {
     console.log('Adding hotel:', name);
     
-    // Folosește runSync pentru inserare
     if (db.runSync) {
       const result = db.runSync(
         `INSERT INTO hotels (name, short_description, long_description, address, city, phone, email, price_from, rating)

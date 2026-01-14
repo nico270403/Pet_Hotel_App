@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/:hotelId", async (req, res) => {
   try {
-    // VERIFICAȚI hotelId
+    // verific hotelId
     const hotelId = parseInt(req.params.hotelId);
     
     if (isNaN(hotelId)) {

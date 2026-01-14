@@ -129,7 +129,7 @@ export const getAllBookings = () => {
   }
 };
 
-// dbHelpers.js - adaugă această funcție
+
 export const getHotelWithDetails = (hotelId) => {
   try {
     if (db.getFirstSync) {
