@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { api } from "../api";
 
-export default function ChatScreen() {
+export default function ChatScreen({ navigation }) {
   // State-uri
   const [messages, setMessages] = useState([
     { 
@@ -113,38 +113,70 @@ export default function ChatScreen() {
         text: `Vreau să rezerv la ${hotel.name}` 
       }]);
 
-      const bookingData = {
-        user_id: 1,
-        hotel_id: hotel.id || hotel.uniqueId,
-        pet_type: "câine",
-        check_in: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
-        check_out: new Date(Date.now() + 86400000 * 10).toISOString().split('T')[0]
-      };
+      // const bookingData = {
+      //   user_id: 1,
+      //   hotel_id: hotel.id || hotel.uniqueId,
+      //   pet_type: "câine",
+      //   check_in: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
+      //   check_out: new Date(Date.now() + 86400000 * 10).toISOString().split('T')[0]
+      // };
       
-      const result = await api.book(bookingData);
+      // const result = await api.book(bookingData);
       
-      const successMessageId = generateId('bot');
-      setMessages(prev => [...prev, { 
-        id: successMessageId,
-        from: "bot", 
-        text: result.message || "✅ Rezervare realizată cu succes!" 
-      }]);
-      
+      // const successMessageId = generateId('bot');
+      // setMessages(prev => [...prev, { 
+      //   id: successMessageId,
+      //   from: "bot", 
+      //   text: result.message || "✅ Rezervare realizată cu succes!" 
+      // }]);
       // Elimină hotelul rezervat
-      setHotels(prev => prev.filter(h => 
-        (h.id !== hotel.id && h.uniqueId !== hotel.uniqueId)
-      ));
+  //     setHotels(prev => prev.filter(h => 
+  //       (h.id !== hotel.id && h.uniqueId !== hotel.uniqueId)
+  //     ));
       
-    } catch (err) {
-      console.error("Eroare rezervare:", err);
-      const errorMessageId = generateId('error');
-      setMessages(prev => [...prev, { 
-        id: errorMessageId,
-        from: "bot", 
-        text: "❌ Ne pare rău, nu am putut face rezervarea. Te rog încearcă din nou." 
-      }]);
-    }
-  };
+  //   } catch (err) {
+  //     console.error("Eroare rezervare:", err);
+  //     const errorMessageId = generateId('error');
+  //     setMessages(prev => [...prev, { 
+  //       id: errorMessageId,
+  //       from: "bot", 
+  //       text: "❌ Ne pare rău, nu am putut face rezervarea. Te rog încearcă din nou." 
+  //     }]);
+  //   }
+  // };
+
+      Alert.alert(
+      "Rezervare hotel",
+      "Pentru a completa rezervarea, te redirecționăm către pagina de rezervare.",
+      [
+        {
+          text: "Anulează",
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            // Navighează către ReservationScreen cu hotelId
+            navigation.navigate('Reservation', { 
+              hotelId: hotel.id || hotel.uniqueId,
+              hotelName: hotel.name 
+            });
+          }
+        }
+      ]
+    );
+    
+  } catch (err) {
+    console.error("Eroare rezervare:", err);
+    const errorMessageId = generateId('error');
+    setMessages(prev => [...prev, { 
+      id: errorMessageId,
+      from: "bot", 
+      text: "❌ Pentru a face rezervare, completează formularul din pagina de rezervare." 
+    }]);
+  }
+};
+      
 
   // ==================== RENDER ====================
 

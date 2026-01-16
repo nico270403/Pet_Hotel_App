@@ -138,30 +138,46 @@ app.get("/api/hotels/:id", async (req, res) => {
 });
 
 // Create booking
-app.post("/api/bookings", async (req, res) => {
-  try {
-    const { hotel_id, pet_name, owner_name, start_date, end_date, services, price } = req.body;
+// app.post('/api/bookings', async (req, res) => {
+//   try {
+//     const {
+//       hotel_id,
+//       user_id,
+//       animal_id,  // IMPORTANT: Acum primești direct animal_id din frontend
+//       start_date,
+//       end_date,
+//       price_total,
+//       currency = 'RON',
+//       status = 'pending',
+//       services = []
+//     } = req.body;
+
+//     console.log('📅 Creare rezervare cu datele:', req.body);
+
+//     // 1. Inserează rezervarea în baza de date (fără pet_name!)
+//     const bookingResult = await pool.query(
+//       `INSERT INTO bookings 
+//        (hotel_id, user_id, animal_id, start_date, end_date, 
+//         price_total, currency, status, created_at)
+//        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+//        RETURNING id`,
+//       [hotel_id, user_id, animal_id, start_date, end_date,
+//        price_total, currency, status]
+//     );
     
-    const result = await pool.query(
-      `INSERT INTO bookings (hotel_id, pet_name, owner_name, start_date, end_date, services, price, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'confirmed') 
-       RETURNING *`,
-      [hotel_id, pet_name, owner_name, start_date, end_date, services, price]
-    );
-    
-    res.json({ 
-      success: true,
-      booking: result.rows[0],
-      message: "Rezervare creată cu succes!"
-    });
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    res.status(500).json({ 
-      success: false,
-      error: "Database error" 
-    });
-  }
-});
+//     res.json({ 
+//       success: true,
+//       booking: result.rows[0],
+//       message: "Rezervare creată cu succes!"
+//     });
+//   } catch (error) {
+//     console.error("Error creating booking:", error);
+//     res.status(500).json({ 
+//       success: false,
+//       error: "Database error" 
+//     });
+//   }
+// });
 
 // Pornire server
 const PORT = process.env.PORT || 3000;

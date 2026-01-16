@@ -266,6 +266,8 @@ export async function ragChat(message, conversation = []) {
     }
     
     responseText += `   🏙️ ${hotel.city}\n\n`;
+
+    responseText += `   📅 **Rezervă acum:** \`/rezerva ${hotel.id}\`\n\n`;
   });
   
   if (result.totalFound > result.hotels.length) {
