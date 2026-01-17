@@ -7,7 +7,8 @@ import {
   ScrollView, 
   KeyboardAvoidingView, 
   Platform,
-  ActivityIndicator 
+  ActivityIndicator,
+  Alert
 } from "react-native";
 import { api } from "../api";
 
