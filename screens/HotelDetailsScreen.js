@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const SCREEN_WIDTH = 400; // sau Dimensions.get('window').width
+const SCREEN_WIDTH = 400; 
 const API_BASE = "http://172.20.10.2:3000/api";
 
 const HotelDetailsScreen = ({ route, navigation }) => {
@@ -27,7 +27,7 @@ const HotelDetailsScreen = ({ route, navigation }) => {
         const resHotel = await fetch(`${API_BASE}/hotels/${hotelId}`);
         if (!resHotel.ok) throw new Error("Hotel not found");
         const hotelData = await resHotel.json();
-        setHotel(hotelData);
+        setHotel(hotelData.hotel);
 
         const resImages = await fetch(`${API_BASE}/hotel_images/${hotelId}`);
         const imagesData = await resImages.json();
