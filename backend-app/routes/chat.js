@@ -9,10 +9,10 @@ router.post('/', async (req, res) => {
     
     console.log(`\n💬 CHAT REQUEST: "${message}"`);
     
-    // Procesează cu RAG 
+    
     const response = await ragChat(message, messages);
     
-    // Returnează răspunsul
+    
     res.json({
       success: true,
       ...response,
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Ruta de test
+
 router.get('/test', async (req, res) => {
   try {
     const result = await ragChat("Caut hotel pentru câine în București");

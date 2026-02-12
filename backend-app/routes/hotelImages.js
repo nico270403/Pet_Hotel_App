@@ -1,4 +1,4 @@
-// hotelImages.js - CORECTAT
+// hotelImages.js 
 import express from "express";
 import pool from "../db.js";
 
@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/:hotelId", async (req, res) => {
   try {
-    // verific hotelId
+    
     const hotelId = parseInt(req.params.hotelId);
     
     if (isNaN(hotelId)) {

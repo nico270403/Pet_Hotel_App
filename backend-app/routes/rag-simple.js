@@ -1,11 +1,10 @@
-// routes/rag-simple.js - RAG ULTRA-SIMPLU CARE MERGE
+// routes/rag-simple.js 
 import fetch from 'node-fetch';
 import db from '../db.js';
 
 const OLLAMA_URL = 'http://localhost:11434';
 const MODEL = 'qwen2.5:3b';
 
-// ==================== CACHE SIMPLU ====================
 let hotelsCache = [];
 let hotelAnimalsCache = {};
 let animalsCache = [];
@@ -14,7 +13,6 @@ async function loadCache() {
   console.log("📦 Încarc date din DB...");
   
   try {
-    // 1. Toate hotelurile
     const hotelsRes = await db.query(`
       SELECT id, name, city, rating, short_description, address 
       FROM hotels 
@@ -22,11 +20,9 @@ async function loadCache() {
     `);
     hotelsCache = hotelsRes.rows;
     
-    // 2. Toate animalele
     const animalsRes = await db.query('SELECT name FROM animals');
     animalsCache = animalsRes.rows.map(r => r.name.toLowerCase());
     
-    // 3. Relații hotel-animale
     const haRes = await db.query(`
       SELECT ha.hotel_id, a.name as animal_name 
       FROM hotel_animals ha
@@ -44,13 +40,11 @@ async function loadCache() {
     
   } catch (error) {
     console.error("❌ Eroare load cache:", error.message);
-    // Fallback date
     hotelsCache = [];
     animalsCache = ['câine', 'pisică', 'hamster', 'iepure'];
   }
 }
 
-// ==================== FUNCȚIE SIMPLĂ DE CAUTARE ====================
 
 function searchHotelsSimple(city, animal) {
   console.log(`🔍 Caută: ${animal} în ${city}`);
@@ -59,13 +53,11 @@ function searchHotelsSimple(city, animal) {
     return { hotels: [], message: "Lipsesc informații" };
   }
   
-  // Normalizează
   const cityLower = city.toLowerCase();
   const animalLower = animal.toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/ș/g, "s").replace(/ț/g, "t");
   
-  // 1. Găsește hoteluri în oraș
   const hotelsInCity = hotelsCache.filter(h => 
     h.city.toLowerCase().includes(cityLower) || 
     cityLower.includes(h.city.toLowerCase())
@@ -78,11 +70,9 @@ function searchHotelsSimple(city, animal) {
     };
   }
   
-  // 2. Găsește hoteluri care acceptă animalul
   const matchingHotels = hotelsInCity.filter(hotel => {
     const acceptedAnimals = hotelAnimalsCache[hotel.id] || [];
     
-    // Verifică fiecare animal acceptat
     return acceptedAnimals.some(acceptedAnimal => {
       const acceptedNormalized = acceptedAnimal
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -93,7 +83,6 @@ function searchHotelsSimple(city, animal) {
     });
   });
   
-  // 3. Sortează după rating
   matchingHotels.sort((a, b) => b.rating - a.rating);
   
   return {
@@ -104,9 +93,9 @@ function searchHotelsSimple(city, animal) {
   };
 }
 
-// ==================== EXTRAGERE PARAMETRI CU LLM ====================
 
 async function extractParamsWithLLM(message) {
+  
   console.log(`🤖 LLM analizează: "${message}"`);
   
   const prompt = `<|im_start|>system
@@ -160,8 +149,10 @@ ${message}<|im_end|>
     const data = await response.json();
     let jsonText = data.response.trim();
     
-    // Curăță răspunsul
-    jsonText = jsonText.replace(/^[^{]*/, ''); // Șterge tot înainte de {
+    console.log("LLM RAW RESPONSE:");
+    console.log(response);
+
+    jsonText = jsonText.replace(/^[^{]*/, ''); 
     if (!jsonText.endsWith('}')) jsonText += '}';
     
     console.log("📨 LLM răspuns:", jsonText);
@@ -177,25 +168,22 @@ ${message}<|im_end|>
     console.error("❌ Eroare LLM:", error.message);
     return { city: null, animal: null };
   }
+
 }
 
-// ==================== FUNCȚIA PRINCIPALĂ RAG ====================
 
 export async function ragChat(message, conversation = []) {
   console.log("\n" + "🌟".repeat(40));
   console.log("🤖 RAG SIMPLU - Procesează mesaj");
   console.log("🌟".repeat(40));
   
-  // 1. Încarcă cache dacă e gol
   if (hotelsCache.length === 0) {
     await loadCache();
   }
   
-  // 2. Extrage parametri cu LLM
   const params = await extractParamsWithLLM(message);
   console.log("📊 Parametri extrași:", params);
   
-  // 3. Dacă lipsesc, întreabă
   if (!params.city && !params.animal) {
     return {
       text: "Pentru a căuta hoteluri, am nevoie să știu pentru ce animal și în ce oraș.\n\nExemplu: 'Caut hotel pentru pisică în București'",
@@ -222,12 +210,9 @@ export async function ragChat(message, conversation = []) {
     };
   }
   
-  // 4. Caută hoteluri
   const result = searchHotelsSimple(params.city, params.animal);
   
-  // 5. Generează răspuns frumos
   if (result.hotels.length === 0) {
-    // Ce animale sunt disponibile în acest oraș?
     const hotelsInCity = hotelsCache.filter(h => 
       h.city.toLowerCase().includes(params.city.toLowerCase()) ||
       params.city.toLowerCase().includes(h.city.toLowerCase())
@@ -250,7 +235,6 @@ export async function ragChat(message, conversation = []) {
     };
   }
   
-  // 6. Formatează răspunsul cu hoteluri găsite
   let responseText = `✅ Am găsit ${result.hotels.length} hoteluri pentru ${params.animal} în ${params.city}:\n\n`;
   
   result.hotels.forEach((hotel, index) => {
@@ -267,7 +251,7 @@ export async function ragChat(message, conversation = []) {
     
     responseText += `   🏙️ ${hotel.city}\n\n`;
 
-    responseText += `   📅 **Rezervă acum:** \`/rezerva ${hotel.id}\`\n\n`;
+    //responseText += `   📅 **Rezervă acum:** \`/rezerva ${hotel.id}\`\n\n`;
   });
   
   if (result.totalFound > result.hotels.length) {
@@ -285,7 +269,6 @@ export async function ragChat(message, conversation = []) {
   };
 }
 
-// ==================== FUNCȚIE DE TEST ====================
 
 export async function testRAG() {
   console.log("\n🧪 TEST RAG SIMPLU");

@@ -70,14 +70,12 @@ const HomeScreen = ({ navigation }) => {
     try {
       console.log('🚀 Starting data loading...');
       
-      // First try to connect to backend
       try {
         await api.checkHealth();
         console.log('✅ Backend is running, using API');
         setUsingBackend(true);
         await loadHotelsFromAPI();
       } catch (backendError) {
-        // Fallback to local SQLite
         console.log('🔄 Backend not available, using local database');
         setUsingBackend(false);
         await loadHotelsFromLocal();
@@ -93,7 +91,6 @@ const HomeScreen = ({ navigation }) => {
   const loadHotelsFromAPI = async () => {
   try {
     console.log('📡 Fetching hotels from API...');
-    // Folosește baseUrl-ul găsit de checkHealth
     const health = await api.checkHealth();
     const data = await api.getHotels(health.baseUrl);
     console.log('✅ Hotels loaded from API:', data.hotels?.length || 0);
@@ -202,12 +199,12 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header */}
+      
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Pet Hotels</Text>
         <Text style={styles.headerSubtitle}>Find the perfect stay for your pet</Text>
         
-        {/* Connection Status */}
+        
         <View style={styles.connectionStatus}>
           <View style={[
             styles.statusDot,
@@ -219,7 +216,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Hotels List */}
+      
       {hotels.length === 0 ? (
         renderEmptyState()
       ) : (
@@ -234,7 +231,7 @@ const HomeScreen = ({ navigation }) => {
         />
       )}
 
-      {/* Refresh Button */}
+      
       <TouchableOpacity 
         style={styles.refreshButton} 
         onPress={handleRefresh}
@@ -325,7 +322,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 80, // Space for refresh button
+    paddingBottom: 80, 
   },
   hotelCard: {
     backgroundColor: '#fff',

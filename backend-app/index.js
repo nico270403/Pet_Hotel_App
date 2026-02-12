@@ -3,25 +3,25 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import pkg from "pg";
+
+// === IMPORTURI RUTE ===
 import hotelImagesRoutes from "./routes/hotelImages.js";
 import chatRoutes from "./routes/chat.js";
 import bookRoutes from "./routes/book.js";
+import authRoutes from "./routes/auth.js"; 
 
-
-//dotenv.config();
 const { Pool } = pkg;
 
 const app = express();
 
 // CORS SUPER PERMISIV
 app.use(cors({
-  origin: true, // Permite TOATE originile
+  origin: true, 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Middleware pentru a permite toate request-urile
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', '*');
@@ -34,12 +34,13 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// === ACTIVARE RUTE ===
 app.use("/api/hotel_images", hotelImagesRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/book", bookRoutes);
+app.use("/api/auth", authRoutes); 
 
 
-// Conectare DB cu fallback
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'postgres',
@@ -65,15 +66,13 @@ const testConnection = async () => {
 
 testConnection();
 
-
 app.use((req, res, next) => {
   console.log(`📍 [${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log(`📍 Client IP: ${req.ip} | Headers:`, req.headers['origin'] || 'no-origin');
+  // console.log(`📍 Client IP: ${req.ip}`); 
   next();
 });
-// ROUTES SIMPLE
 
-// Health check
+
 app.get("/", (req, res) => {
   res.json({ 
     message: "Backend merge perfect!", 
@@ -82,7 +81,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health check pentru frontend
 app.get("/api/health", (req, res) => {
   res.json({ 
     message: "API Health OK", 
@@ -91,7 +89,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Get all hotels - SIMPLU
 app.get("/api/hotels", async (req, res) => {
   try {
     console.log("📡 Cerere pentru hoteluri primită");
@@ -120,7 +117,6 @@ app.get("/api/hotels", async (req, res) => {
   }
 });
 
-// Get hotel by ID
 app.get("/api/hotels/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -137,51 +133,9 @@ app.get("/api/hotels/:id", async (req, res) => {
   }
 });
 
-// Create booking
-// app.post('/api/bookings', async (req, res) => {
-//   try {
-//     const {
-//       hotel_id,
-//       user_id,
-//       animal_id,  // IMPORTANT: Acum primești direct animal_id din frontend
-//       start_date,
-//       end_date,
-//       price_total,
-//       currency = 'RON',
-//       status = 'pending',
-//       services = []
-//     } = req.body;
 
-//     console.log('📅 Creare rezervare cu datele:', req.body);
-
-//     // 1. Inserează rezervarea în baza de date (fără pet_name!)
-//     const bookingResult = await pool.query(
-//       `INSERT INTO bookings 
-//        (hotel_id, user_id, animal_id, start_date, end_date, 
-//         price_total, currency, status, created_at)
-//        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-//        RETURNING id`,
-//       [hotel_id, user_id, animal_id, start_date, end_date,
-//        price_total, currency, status]
-//     );
-    
-//     res.json({ 
-//       success: true,
-//       booking: result.rows[0],
-//       message: "Rezervare creată cu succes!"
-//     });
-//   } catch (error) {
-//     console.error("Error creating booking:", error);
-//     res.status(500).json({ 
-//       success: false,
-//       error: "Database error" 
-//     });
-//   }
-// });
-
-// Pornire server
 const PORT = process.env.PORT || 3000;
-const HOST = '0.0.0.0'; // Ascultă pe toate interfețele
+const HOST = '0.0.0.0'; // Ascult pe toate interfețele
 
 app.listen(PORT, HOST, () => {
   console.log(`🚀 Backend Server pornit!`);
