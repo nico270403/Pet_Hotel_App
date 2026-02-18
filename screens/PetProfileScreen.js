@@ -21,9 +21,9 @@ export default function PetProfileScreen({ navigation }) {
 
   const [pets, setPets] = useState([]);
 
-  // NOU: Funcția care deschide galeria telefonului
+  //Functia care deschide galeria telefonului
   const pickImage = async () => {
-    // Cer permisiunea de a accesa galeria (obligatoriu pe iOS/Android)
+    // Cer permisiunea de a accesa galeria 
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (permissionResult.granted === false) {
@@ -35,7 +35,7 @@ export default function PetProfileScreen({ navigation }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true, // Permit utilizatorului să taie/încadreze poza
-      aspect: [1, 1], // Forțez poza să fie pătrată (1:1) pentru profil
+      aspect: [1, 1], // Fortez poza să fie pătrată (1:1) pentru profil
       quality: 0.5, // Reduc calitatea pentru a nu ocupa multă memorie
     });
 
@@ -53,7 +53,7 @@ export default function PetProfileScreen({ navigation }) {
     const newPet = { id: Date.now().toString(), name, species, breed, age, allergies, image };
     setPets(prev => [...prev, newPet]);
 
-    // Resetăm câmpurile după salvare
+    // Resetez câmpurile după salvare
     setName(""); setSpecies(""); setBreed(""); setAge(""); setAllergies(""); setImage(null);
   };
 
@@ -103,7 +103,7 @@ export default function PetProfileScreen({ navigation }) {
             <Text style={styles.label}>Cerințe speciale / Alergii</Text>
             <TextInput style={styles.input} value={allergies} onChangeText={setAllergies} placeholder="ex: Fără" />
 
-            {/* NOU: Zona pentru poză */}
+            {/* Zona pentru poză */}
             <Text style={styles.label}>Poză Profil (opțional)</Text>
             <View style={styles.imagePickerContainer}>
               {image ? (

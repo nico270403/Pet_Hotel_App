@@ -38,7 +38,7 @@ router.post("/bookings", async (req, res) => {
     const end_date = check_out;
     const price_total = price ?? 0;
 
-    
+
     const animalResult = await pool.query(
       `SELECT id FROM animals WHERE name = $1 LIMIT 1`,
       [pet_name]
@@ -55,13 +55,13 @@ router.post("/bookings", async (req, res) => {
       animal_id = newAnimal.rows[0].id;
     }
 
-    
+
     const bookingResult = await pool.query(
       `INSERT INTO bookings (
-        hotel_id, user_id, animal_id, start_date, end_date, 
+        hotel_id, user_id, animal_id, pet_name, pet_type, start_date, end_date, 
         price_total, currency, status, owner_email, created_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()) RETURNING id`,
-      [hotel_id, user_id, animal_id, start_date, end_date, price_total, "RON", "pending", owner_email]
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW()) RETURNING id`,
+      [hotel_id, user_id, animal_id, pet_name, pet_type, start_date, end_date, price_total, "RON", "pending", owner_email]
     );
 
     const bookingId = bookingResult.rows[0].id;
@@ -73,7 +73,7 @@ router.post("/bookings", async (req, res) => {
 
     const hotel_name = hotelResult.rows[0]?.name || "Hotel necunoscut";
 
-    
+
     try {
       const transporter = nodemailer.createTransport({
         service: "gmail",

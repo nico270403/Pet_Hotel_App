@@ -3,12 +3,15 @@ import {
   View, TextInput, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, StyleSheet
 } from "react-native";
 import { api } from "../api";
-
 import { AuthContext } from "../context/AuthContext";
 
 export default function ChatScreen({ navigation, route }) {
   
   const { user } = useContext(AuthContext);
+  
+  // Salvăm datele animalului DEFINITIV în state pentru a nu se mai pierde la re-randare
+  const [savedPetName] = useState(route.params?.petName || "");
+  const [savedPetType] = useState(route.params?.petType || "animal");
 
   const [messages, setMessages] = useState([
     { 
@@ -41,26 +44,23 @@ export default function ChatScreen({ navigation, route }) {
   const scrollViewRef = useRef();
   const sessionId = useRef(`session_${Date.now()}`).current;
 
-  
   useEffect(() => {
     if (route?.params?.initialPrompt) {
       const prompt = route.params.initialPrompt;
-      const petName = route.params.petName;
       
       const welcomeMsgId = generateId('bot_welcome_pet');
       setMessages(prev => [...prev, {
         id: welcomeMsgId,
         from: "bot",
-        text: `Am primit datele pentru ${petName}! 🐾\n\nPentru a-ți oferi cele mai bune recomandări, în ce oraș cauți hotelul?`
+        text: `Am primit datele pentru ${savedPetName}! 🐾\n\nPentru a-ți oferi cele mai bune recomandări, în ce oraș cauți hotelul?`
       }]);
       
       setPendingPetSearch(prompt);
       setQuickReplies(["În București", "În Cluj", "În Timișoara", "În Brașov"]);
-      navigation.setParams({ initialPrompt: null, petName: null });
+      navigation.setParams({ initialPrompt: null }); 
     }
   }, [route?.params?.initialPrompt]);
 
-  
   const generateId = (prefix = 'msg') => `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePhone = (phone) => /^[0-9]{10}$/.test(phone.replace(/\D/g, ''));
@@ -83,7 +83,6 @@ export default function ChatScreen({ navigation, route }) {
     setMessages(prev => [...prev, { id: generateId('bot'), from: "bot", text: question }]);
   };
 
-  
   const send = async (messageText = null) => {
     const textToSend = messageText || input.trim();
     if (!textToSend || isLoading) return;
@@ -105,6 +104,8 @@ export default function ChatScreen({ navigation, route }) {
     if (pendingPetSearch) {
       apiPrompt = `${pendingPetSearch} Te rog să-mi recomanzi hoteluri pentru el în zona/orașul ${textToSend}.`;
       setPendingPetSearch(null);
+    } else if (savedPetName) {
+      apiPrompt = `[Context ascuns: Utilizatorul vorbește despre animalul său, un ${savedPetType} pe nume ${savedPetName}. Răspunde natural, nu-l mai întreba cum îl cheamă sau ce e.]\n\n` + textToSend;
     }
 
     setIsLoading(true);
@@ -129,18 +130,38 @@ export default function ChatScreen({ navigation, route }) {
     }
   };
 
-  
   const startReservationFlow = (hotel = null) => {
     setHideHotels(true);
     setIsReservationMode(true);
-    setReservationStep('petName');
     setQuickReplies([]);
     if (hotel) setSelectedHotel(hotel);
     
-    const introMsg = hotel 
-      ? ` Rezervare la "${hotel.name}".\n\n**Pasul 1:** Care este numele animalului tău?`
-      : " Să începem rezervarea!\n\n**Pasul 1:** Care este numele animalului tău?";
-    askQuestion(introMsg);
+    if (savedPetName) {
+      // Avem datele animalului din state, sărim direct!
+      setReservationData(prev => ({ ...prev, petName: savedPetName, petType: savedPetType }));
+      
+      if (user && user.name) {
+        setReservationData(p => ({ ...p, ownerName: user.name }));
+        if (user.email) {
+          setReservationData(p => ({ ...p, ownerEmail: user.email }));
+          setReservationStep('ownerPhone');
+          askQuestion(`🏨 Rezervare la "${hotel ? hotel.name : 'hotel'}".\n\nAm completat automat datele pentru **${savedPetName}** și datele tale de cont.\n\n**Pasul 5:** Care este numărul tău de telefon?`);
+        } else {
+          setReservationStep('ownerEmail');
+          askQuestion(`🏨 Rezervare la "${hotel ? hotel.name : 'hotel'}".\n\nAm completat automat datele pentru **${savedPetName}** și numele tău.\n\n**Pasul 4:** Care este adresa ta de email?`);
+        }
+      } else {
+        setReservationStep('ownerName');
+        askQuestion(`🏨 Rezervare la "${hotel ? hotel.name : 'hotel'}".\n\nAm preluat automat datele pentru **${savedPetName}**.\n\n**Pasul 3:** Care este numele tău complet?`);
+      }
+    } else {
+      // Nu avem datele, începem normal de la pasul 1
+      setReservationStep('petName');
+      const introMsg = hotel 
+        ? `🏨 Rezervare la "${hotel.name}".\n\n**Pasul 1:** Care este numele animalului tău?`
+        : "Să începem rezervarea!\n\n**Pasul 1:** Care este numele animalului tău?";
+      askQuestion(introMsg);
+    }
   };
 
   const processReservationStep = async (userInput) => {
@@ -256,7 +277,6 @@ export default function ChatScreen({ navigation, route }) {
         },
         body: JSON.stringify({
           hotel_id: selectedHotel?.id || null,
-          
           user_id: user ? user.id : 1,
           pet_name: reservationData.petName,
           pet_type: reservationData.petType,
@@ -296,7 +316,11 @@ export default function ChatScreen({ navigation, route }) {
   const resetReservation = () => {
     setIsReservationMode(false);
     setReservationStep(null);
-    setReservationData({ petName: "", petType: "", ownerName: "", ownerEmail: "", ownerPhone: "", checkIn: "", checkOut: "", specialRequests: "" });
+    setReservationData({ 
+      petName: savedPetName || "", 
+      petType: savedPetType || "", 
+      ownerName: "", ownerEmail: "", ownerPhone: "", checkIn: "", checkOut: "", specialRequests: "" 
+    });
     setSelectedHotel(null);
     setHideHotels(false);
     setQuickReplies(["Caut hotel pentru câine în București", "Vreau hotel pentru pisică în Cluj", "Vreau să fac o rezervare"]);

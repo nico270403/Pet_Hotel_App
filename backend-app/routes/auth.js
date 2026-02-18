@@ -61,7 +61,7 @@ router.get("/my-bookings/:userId", async (req, res) => {
     const { userId } = req.params;
     
     const result = await pool.query(
-      `SELECT b.id, b.start_date, b.end_date, b.price_total, b.status, h.name as hotel_name, h.city 
+      `SELECT b.*, h.name as hotel_name, h.city 
        FROM bookings b 
        JOIN hotels h ON b.hotel_id = h.id 
        WHERE b.user_id = $1 

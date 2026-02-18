@@ -9,6 +9,7 @@ import hotelImagesRoutes from "./routes/hotelImages.js";
 import chatRoutes from "./routes/chat.js";
 import bookRoutes from "./routes/book.js";
 import authRoutes from "./routes/auth.js"; 
+import paymentRoutes from "./routes/payment.js";
 
 const { Pool } = pkg;
 
@@ -39,6 +40,7 @@ app.use("/api/hotel_images", hotelImagesRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/book", bookRoutes);
 app.use("/api/auth", authRoutes); 
+app.use("/api/payment", paymentRoutes);
 
 
 const pool = new Pool({

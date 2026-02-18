@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Platform, View, Text, ActivityIndicator } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { AuthContext } from "./context/AuthContext";
+import { Alert } from "react-native";
 // === IMPORT ECRANE ===
 import HomeScreen from "./screens/HomeScreen";
 import HotelDetailsScreen from "./screens/HotelDetailsScreen";
@@ -22,15 +24,32 @@ import hotelsSeed from "./assets/data/hotels.json";
 import { addHotelDirect } from "./seedHelpers";
 import { AuthProvider } from "./context/AuthContext";
 
+import { StripeProvider } from '@stripe/stripe-react-native';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // === CONFIGURARE TAB-URI (MENIUL DE JOS) ===
 function MainTabs() {
+  const { user, logout } = React.useContext(AuthContext);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
+        headerShown: true,
+        headerTitleAlign: 'center',
+        headerRight: () => user ? (
+          <TouchableOpacity 
+            onPress={() => {
+              Alert.alert("Deconectare", "Ești sigur că vrei să ieși?", [
+                { text: "Anulează", style: "cancel" },
+                { text: "Da", onPress: logout, style: "destructive" }
+              ]);
+            }} 
+            style={{ marginRight: 15 }}
+          >
+            <Ionicons name="log-out-outline" size={26} color="#dc2626" />
+          </TouchableOpacity>
+        ) : null,
         tabBarStyle: {
           height: 70,
           paddingBottom: Platform.OS === "ios" ? 20 : 10,
@@ -149,25 +168,27 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <Stack.Navigator 
-          initialRouteName="Login"
-          screenOptions={{ headerTitleAlign: "center", headerShadowVisible: false }}
-        >
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+      <StripeProvider publishableKey="pk_test_51T2ERd12ViiqPzeDSePd8FBLZaGRNjRApKzQbRe4GNEQ20zedI3s927aJnLPZRvvBytSp2wRPL3LLyUWcXVVwICS00hyvcnFMy">
+        <NavigationContainer>
+          <Stack.Navigator 
+            initialRouteName="Login"
+            screenOptions={{ headerTitleAlign: "center", headerShadowVisible: false }}
+          >
+            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
 
-          <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
+            <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
 
-          <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} options={{ title: "Detalii Hotel" }} />
-          
-          <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: "Rezervare" }} />
-          
-          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Asistent AI" }} />
-          <Stack.Screen name="PetProfile" component={PetProfileScreen} options={{ title: "Profil Animal" }} />
+            <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} options={{ title: "Detalii Hotel" }} />
+            
+            <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: "Rezervare" }} />
+            
+            <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Asistent AI" }} />
+            <Stack.Screen name="PetProfile" component={PetProfileScreen} options={{ title: "Profil Animal" }} />
 
-        </Stack.Navigator>
-      </NavigationContainer>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </StripeProvider>
     </AuthProvider>
   );
 }
