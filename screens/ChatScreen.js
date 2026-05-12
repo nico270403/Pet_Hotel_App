@@ -111,7 +111,9 @@ export default function ChatScreen({ navigation, route }) {
     setIsLoading(true);
     setQuickReplies([]);
     try {
-      const response = await api.sendMessage(apiPrompt, sessionId, hotelsShown);
+      const currentHistory = [...messages, { id: generateId('user'), from: "user", text: textToSend }];
+      
+      const response = await api.sendMessage(apiPrompt, sessionId, hotelsShown, currentHistory);
       
       if (response.hotels && response.hotels.length > 0) {
         const hotelsWithIds = response.hotels.map(h => ({ 
@@ -120,6 +122,7 @@ export default function ChatScreen({ navigation, route }) {
         }));
         setHotels(prev => [...prev, ...hotelsWithIds]);
         setHotelsShown(prev => [...prev, ...hotelsWithIds.map(h => h.uniqueId)]);
+      
       }
 
       if (response.text) askQuestion(response.text);

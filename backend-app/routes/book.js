@@ -1,6 +1,10 @@
 import express from "express";
 import pool from "../db.js"; 
 import nodemailer from "nodemailer";
+import { Expo } from 'expo-server-sdk';
+
+let expo = new Expo();
+
 
 const router = express.Router();
 
@@ -55,6 +59,32 @@ router.post("/bookings", async (req, res) => {
       animal_id = newAnimal.rows[0].id;
     }
 
+
+    // 1. Aflăm capacitatea maximă a hotelului
+    const hotelInfo = await pool.query(`SELECT name, capacity FROM hotels WHERE id = $1`, [hotel_id]);
+    const hotelCapacity = hotelInfo.rows[0]?.capacity || 5; 
+    const nume_hotel_verificat = hotelInfo.rows[0]?.name || "Hotel necunoscut";
+
+    // 2. Numărăm câte rezervări active se suprapun cu perioada cerută
+    const overlapCheck = await pool.query(`
+      SELECT COUNT(*) as occupied_spots 
+      FROM bookings 
+      WHERE hotel_id = $1 
+        AND status IN ('pending', 'approved', 'paid')
+        AND start_date < $3 
+        AND end_date > $2
+    `, [hotel_id, start_date, end_date]);
+
+    const occupiedSpots = parseInt(overlapCheck.rows[0].occupied_spots);
+
+    // 3. Dacă locurile ocupate sunt egale sau mai mari decât capacitatea, blocăm rezervarea
+    if (occupiedSpots >= hotelCapacity) {
+      console.log(`⚠️ Hotelul ${nume_hotel_verificat} este PLIN! (${occupiedSpots}/${hotelCapacity} locuri ocupate)`);
+      return res.status(400).json({
+        success: false,
+        message: `Ne pare rău, dar ${nume_hotel_verificat} nu mai are locuri disponibile în perioada selectată. Încearcă alte date sau alt hotel!`
+      });
+    }
 
     const bookingResult = await pool.query(
       `INSERT INTO bookings (
@@ -159,6 +189,28 @@ router.get("/:id/accept", async (req, res) => {
 //           `
         });
       } catch (err) { console.warn("⚠️ Email user Netrimis:", err.message); }
+      try {
+      const userRes = await pool.query("SELECT expo_push_token FROM users WHERE id = $1", [booking.user_id]);
+      const pushToken = userRes.rows[0]?.expo_push_token;
+
+      if (pushToken && Expo.isExpoPushToken(pushToken)) {
+        let messages = [{
+          to: pushToken,
+          sound: 'default',
+          title: '✅ Rezervare Aprobată!',
+          body: `Rezervarea ta la ${hotel_name} a fost confirmată. Te așteptăm!`,
+          data: { redirectTo: 'MyBookings' },
+        }];
+        
+        let chunks = expo.chunkPushNotifications(messages);
+        for (let chunk of chunks) {
+          await expo.sendPushNotificationsAsync(chunk);
+        }
+        console.log("📱 Notificare Push trimisă automat cu succes!");
+      }
+    } catch (pushErr) {
+      console.warn("⚠️ Eroare la trimiterea notificării push:", pushErr.message);
+    }
     }
     res.send("<h2>✅ Rezervarea a fost aprobată</h2>");
   } catch (err) {
@@ -195,6 +247,45 @@ router.get("/:id/reject", async (req, res) => {
     res.send("<h2>Rezervarea a fost respinsă ❌</h2>");
   } catch (err) {
     res.status(500).send("Eroare la respingere");
+  }
+});
+
+router.get("/unavailable-dates/:hotelId", async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+
+    // 1. Aflăm capacitatea hotelului
+    const hotelInfo = await pool.query(`SELECT capacity FROM hotels WHERE id = $1`, [hotelId]);
+    const capacity = hotelInfo.rows[0]?.capacity || 5;
+
+    // 2. Luăm toate rezervările active pentru acest hotel
+    const bookings = await pool.query(`
+      SELECT start_date, end_date
+      FROM bookings
+      WHERE hotel_id = $1 AND status IN ('pending', 'approved', 'paid')
+    `, [hotelId]);
+
+    // 3. Calculăm câte animale sunt cazate în fiecare noapte
+    const occupancy = {};
+    bookings.rows.forEach(b => {
+      let current = new Date(b.start_date);
+      const end = new Date(b.end_date);
+      
+      // Iterăm prin fiecare noapte a rezervării
+      while(current < end) {
+        const dateStr = current.toISOString().split('T')[0]; // ex: "2026-05-21"
+        occupancy[dateStr] = (occupancy[dateStr] || 0) + 1;
+        current.setDate(current.getDate() + 1);
+      }
+    });
+
+    // 4. Filtrăm doar zilele unde s-a atins capacitatea maximă
+    const fullDates = Object.keys(occupancy).filter(date => occupancy[date] >= capacity);
+
+    res.json({ success: true, fullDates });
+  } catch (err) {
+    console.error("Eroare unavailable dates:", err);
+    res.status(500).json({ success: false });
   }
 });
 

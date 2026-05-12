@@ -23,23 +23,38 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   const { hotelId } = route.params;
   const [hotel, setHotel] = useState(null);
   const [images, setImages] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHotelDetails = async () => {
       try {
+        // 1. Aducem detaliile hotelului
         const resHotel = await fetch(`${API_BASE}/hotels/${hotelId}`);
         if (!resHotel.ok) throw new Error("Hotel not found");
         const hotelData = await resHotel.json();
         setHotel(hotelData.hotel);
 
+        // 2. Aducem imaginile
         const resImages = await fetch(`${API_BASE}/hotel_images/${hotelId}`);
         const imagesData = await resImages.json();
         setImages(
           imagesData.length > 0
             ? imagesData.map((img) => ({ uri: img.image_url }))
-            : [{ uri: hotelData.image_url || "https://placedog.net/400/300?random=1" }]
+            : [{ uri: hotelData.hotel?.image_url || "https://placedog.net/400/300?random=1" }]
         );
+
+        // 3. Aducem recenziile (CODUL NOU)
+        try {
+          const resReviews = await fetch(`${API_BASE}/reviews/hotel/${hotelId}`);
+          const reviewsData = await resReviews.json();
+          if (reviewsData.success) {
+            setReviews(reviewsData.reviews);
+          }
+        } catch (err) {
+          console.warn("Nu am putut încărca recenziile", err);
+        }
+
       } catch (err) {
         console.error("Error fetching hotel details:", err);
       } finally {
@@ -121,6 +136,28 @@ const HotelDetailsScreen = ({ route, navigation }) => {
               />
             </MapView>
           </View>
+          {/* SECȚIUNE NOUĂ: Recenzii */}
+          <Text style={styles.sectionTitle}>Părerea Clienților ({reviews.length})</Text>
+          
+          {reviews.length === 0 ? (
+            <Text style={styles.description}>Acest hotel nu are recenzii încă.</Text>
+          ) : (
+            <FlatList
+              data={reviews}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.reviewCard}>
+                  <Text style={styles.reviewName}>👤 {item.user_name}</Text>
+                  <Text style={styles.reviewStars}>
+                    {"⭐".repeat(item.rating)}{"☆".repeat(5 - item.rating)}
+                  </Text>
+                  <Text style={styles.reviewComment}>"{item.comment}"</Text>
+                </View>
+              )}
+            />
+          )}
 
           {/* Contact */}
           <Text style={styles.sectionTitle}>Contact</Text>
@@ -181,6 +218,35 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10, color: '#111827' },
   description: { fontSize: 15, lineHeight: 24, color: '#4b5563' },
+
+  // Stiluri Recenzii
+  reviewCard: {
+    backgroundColor: '#f9fafb',
+    padding: 15,
+    borderRadius: 12,
+    marginRight: 15,
+    width: 250, // Lățime fixă ca să arate ca niște carduri
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  reviewName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#1f2937',
+    marginBottom: 5,
+  },
+  reviewStars: {
+    fontSize: 14,
+    color: '#fbbf24',
+    marginBottom: 8,
+  },
+  reviewComment: {
+    fontSize: 14,
+    color: '#4b5563',
+    fontStyle: 'italic',
+  },
 
   // Stiluri Hartă
   mapContainer: {

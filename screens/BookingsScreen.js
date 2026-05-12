@@ -156,7 +156,8 @@ export default function BookingsScreen({ navigation }) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           renderItem={({ item }) => {
             const isApproved = item.status.toLowerCase() === 'approved' || item.status.toLowerCase() === 'confirmed';
-            
+            const isCompleted = new Date() > new Date(item.end_date);
+            const canReview = isCompleted && (item.status === 'paid' || item.status === 'approved') && !item.reviewed;
             return (
               <View style={[styles.card, { borderLeftColor: getStatusColor(item.status) === '#dcfce7' ? 'green' : getStatusColor(item.status) === '#dbeafe' ? 'blue' : 'orange' }]}>
                 
@@ -193,6 +194,18 @@ export default function BookingsScreen({ navigation }) {
                   </TouchableOpacity>
                 )}
 
+                {canReview && (
+                  <TouchableOpacity 
+                    style={[styles.payBtn, { backgroundColor: '#f59e0b' }]} 
+                    onPress={() => navigation.navigate('Review', { booking: item })}
+                  >
+                    <Text style={styles.payBtnText}>⭐ Lasă o recenzie</Text>
+                  </TouchableOpacity>
+                )}
+    
+                {item.reviewed && (
+                  <Text style={{ color: '#10b981', marginTop: 10, fontStyle: 'italic' }}>✅ Ai evaluat această ședere</Text>
+                )}
               </View>
             );
           }}

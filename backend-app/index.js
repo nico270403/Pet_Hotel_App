@@ -10,6 +10,7 @@ import chatRoutes from "./routes/chat.js";
 import bookRoutes from "./routes/book.js";
 import authRoutes from "./routes/auth.js"; 
 import paymentRoutes from "./routes/payment.js";
+import reviewRoute from "./routes/reviews.js";
 
 const { Pool } = pkg;
 
@@ -74,6 +75,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api/reviews", reviewRoute);
+
 
 app.get("/", (req, res) => {
   res.json({ 
@@ -96,7 +99,7 @@ app.get("/api/hotels", async (req, res) => {
     console.log("📡 Cerere pentru hoteluri primită");
     
     const result = await pool.query(`
-      SELECT id, name, short_description, city, rating, image_url
+      SELECT id, name, short_description, city, rating, image_url, latitude, longitude
       FROM hotels 
       ORDER BY rating DESC
     `);

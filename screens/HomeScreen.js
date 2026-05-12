@@ -12,6 +12,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { getHotels } from '../dbHelpers';
+import MapView, { Marker, Callout } from 'react-native-maps';
 
 const API_URLS = [
   'http://172.20.10.2:3000', // IP-ul meu de rețea
@@ -61,11 +62,20 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [usingBackend, setUsingBackend] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     loadInitialData();
   }, []);
 
+  useEffect(() => {
+    console.log("🧠 Trimit semnal de încălzire către AI...");
+    fetch('http://172.20.10.2:3000/api/chat/warmup')
+      .then(res => res.json())
+      .then(data => console.log("✅ AI Status:", data.message))
+      .catch(err => console.log("⚠️ Eroare warmup:", err.message));
+  }, []);
+  
   const loadInitialData = async () => {
     try {
       console.log('🚀 Starting data loading...');
@@ -199,11 +209,21 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      
+      {/* HEADER-UL MODIFICAT (cu butonul de hartă) */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Pet Hotels</Text>
-        <Text style={styles.headerSubtitle}>Find the perfect stay for your pet</Text>
-        
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View>
+            <Text style={styles.headerTitle}>Pet Hotels</Text>
+            <Text style={styles.headerSubtitle}>Find the perfect stay for your pet</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.mapToggleButton} 
+            onPress={() => setShowMap(!showMap)}
+          >
+            <Text style={styles.mapToggleText}>{showMap ? "📋 Listă" : "🗺️ Hartă"}</Text>
+          </TouchableOpacity>
+        </View>
         
         <View style={styles.connectionStatus}>
           <View style={[
@@ -216,10 +236,44 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      
-      {hotels.length === 0 ? (
+      {/* AICI ESTE CODUL TĂU NOU PENTRU HARTĂ / LISTĂ */}
+      {loading ? (
+        renderLoadingState()
+      ) : showMap ? (
+        /* VIZUALIZARE HARTĂ */
+        <View style={{ flex: 1 }}>
+          <MapView
+            style={styles.fullMap}
+            initialRegion={{
+              latitude: 45.7489, // Centrat pe Timișoara by default
+              longitude: 21.2087,
+              latitudeDelta: 4, // Zoom mai mare pentru a vedea toată țara inițial
+              longitudeDelta: 4,
+            }}
+          >
+            {hotels.map((hotel) => (
+              <Marker
+                key={hotel.id?.toString()}
+                coordinate={{
+                  latitude: hotel.latitude || 45.7489,
+                  longitude: hotel.longitude || 21.2087,
+                }}
+              >
+                <Callout onPress={() => navigation.navigate('HotelDetails', { hotelId: hotel.id })}>
+                  <View style={styles.calloutContainer}>
+                    <Text style={styles.calloutTitle}>{hotel.name}</Text>
+                    <Text style={styles.calloutPrice}>💰 {hotel.price_from || 100} RON/zi</Text>
+                    <Text style={styles.calloutLink}>Vezi detalii →</Text>
+                  </View>
+                </Callout>
+              </Marker>
+            ))}
+          </MapView>
+        </View>
+      ) : hotels.length === 0 ? (
         renderEmptyState()
       ) : (
+        /* VIZUALIZARE LISTĂ (codul existent) */
         <FlatList
           data={hotels}
           renderItem={renderHotelItem}
@@ -231,7 +285,7 @@ const HomeScreen = ({ navigation }) => {
         />
       )}
 
-      
+      {/* BUTONUL DE REFRESH */}
       <TouchableOpacity 
         style={styles.refreshButton} 
         onPress={handleRefresh}
@@ -431,6 +485,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+
+  mapToggleButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 3,
+  },
+  mapToggleText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  fullMap: {
+    width: '100%',
+    height: '100%',
+  },
+  calloutContainer: {
+    padding: 10,
+    minWidth: 150,
+    alignItems: 'center'
+  },
+  calloutTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  calloutPrice: {
+    color: '#2563eb',
+    fontWeight: '600',
+    fontSize: 13,
+    marginBottom: 5,
+  },
+  calloutLink: {
+    color: '#6b7280',
+    fontSize: 11,
+    fontStyle: 'italic'
+  }
 });
 
 export default HomeScreen;

@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import db from '../db.js';
 
 const OLLAMA_URL = 'http://localhost:11434';
-const MODEL = 'qwen2.5:3b';
+const MODEL = 'llama3.1';
 
 let hotelsCache = [];
 let hotelAnimalsCache = {};
@@ -94,83 +94,71 @@ function searchHotelsSimple(city, animal) {
 }
 
 
-async function extractParamsWithLLM(message) {
+async function extractParamsWithLLM(message, conversation = []) {
   
-  console.log(`🤖 LLM analizează: "${message}"`);
-  
-  const prompt = `<|im_start|>system
-Extrage orașul și animalul din mesajul utilizatorului.
+  console.log(`\n--- 🕵️ DEBUG ISTORIC ---`);
+  console.log(`Mesaj nou: "${message}"`);
+  console.log(`Număr mesaje în istoric: ${conversation.length}`);
 
-IMPORTANT: Normalizează animalele:
-- "motan", "pisoi", "pisică" → "pisică"
-- "cățel", "cățeluș", "câine" → "câine"  
-- "porcușor de Guineea", "guinea pig" → "porcușor de guineea"
-- "reptilă", "șarpe", "șopârlă" → "reptilă"
+  let historyText = "Niciun istoric.";
+  if (conversation && conversation.length > 0) {
+    const recent = conversation.slice(-2).map(m => m.text || m.content || "").filter(t => t.length > 0);
+    if (recent.length > 0) {
+      historyText = recent.join("\n- ");
+    }
+  }
 
-Orașe posibile: București, Cluj-Napoca, Timișoara, Iași, Popești-Leordeni, Bragadiru
-Animale posibile: ${animalsCache.join(', ')}
+  // PROMPT SIMPLU ȘI CLAR
+  const prompt = `Ești un sistem automat care returnează date despre hoteluri.
+Analizează "Mesajul curent" și "Istoricul". Extrage orașul și animalul.
+Trebuie să returnezi datele STRICT în format JSON, cu cheile "city" și "animal".
 
-Răspunde DOAR cu JSON:
-{
-  "city": "nume_oras_sau_null",
-  "animal": "nume_animal_sau_null"
-}
+REGULI:
+- Dacă orașul lipsește, valoarea va fi null.
+- Nu inventa orașe.
 
-Exemple:
-"Vreau hotel pentru câine în București" → {"city":"București","animal":"câine"}
-"Caut loc pentru pisică" → {"city":null,"animal":"pisică"}
-"În Timișoara" → {"city":"Timișoara","animal":null}<|im_end|>
+Orașe recunoscute: București, Cluj-Napoca, Timișoara, Iași, Popești-Leordeni, Bragadiru
+Animale recunoscute: ${animalsCache.join(', ')}
 
-<|im_start|>user
-${message}<|im_end|>
-<|im_start|>assistant
-{`;
+Exemplu de răspuns dorit:
+{ "city": "Cluj-Napoca", "animal": "arici" }
+
+---
+Istoric:
+- ${historyText}
+
+Mesajul curent: "${message}"`;
 
   try {
     const response = await fetch(`${OLLAMA_URL}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: MODEL,
+        model: 'llama3.1',
         prompt: prompt,
         stream: false,
+        keep_alive: -1,
+        format: "json", // 🔴 ACEASTA ESTE LINIA MAGICĂ!
         options: { 
-          temperature: 0.1,
-          num_predict: 100 
+          temperature: 0.0,
+          num_predict: 50 
         }
       })
     });
 
-    if (!response.ok) {
-      console.warn("⚠️ LLM nu răspunde, folosesc fallback");
-      return { city: null, animal: null };
-    }
+    if (!response.ok) return { city: null, animal: null };
 
     const data = await response.json();
-    let jsonText = data.response.trim();
+    const jsonText = data.response;
     
-    console.log("LLM RAW RESPONSE:");
-    console.log(response);
-
-    jsonText = jsonText.replace(/^[^{]*/, ''); 
-    if (!jsonText.endsWith('}')) jsonText += '}';
-    
-    console.log("📨 LLM răspuns:", jsonText);
-    
-    try {
-      return JSON.parse(jsonText);
-    } catch (e) {
-      console.warn("❌ JSON invalid, fallback:", e.message);
-      return { city: null, animal: null };
-    }
+    console.log("📨 Llama 3.1 a dedus:", jsonText);
+    return JSON.parse(jsonText);
     
   } catch (error) {
     console.error("❌ Eroare LLM:", error.message);
     return { city: null, animal: null };
   }
-
 }
-
 
 export async function ragChat(message, conversation = []) {
   console.log("\n" + "🌟".repeat(40));
@@ -181,7 +169,7 @@ export async function ragChat(message, conversation = []) {
     await loadCache();
   }
   
-  const params = await extractParamsWithLLM(message);
+  const params = await extractParamsWithLLM(message, conversation);
   console.log("📊 Parametri extrași:", params);
   
   if (!params.city && !params.animal) {
@@ -293,3 +281,5 @@ export default {
   testRAG,
   loadCache
 };
+
+loadCache();

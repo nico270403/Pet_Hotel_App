@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  ActivityIndicator, ScrollView, TextInput, Alert
+  ActivityIndicator, ScrollView, TextInput, Alert, Modal
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { AuthContext } from "../context/AuthContext";
+
+LocaleConfig.locales['ro'] = {
+  monthNames: ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
+  dayNames: ['Duminică','Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă'],
+  dayNamesShort: ['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'],
+  today: 'Azi'
+};
+LocaleConfig.defaultLocale = 'ro';
 
 export default function ReservationScreen({ route, navigation }) {
   const { hotelId } = route.params || {};
@@ -22,8 +30,30 @@ export default function ReservationScreen({ route, navigation }) {
 
   const [checkin, setCheckin] = useState(null);
   const [checkout, setCheckout] = useState(null);
-  const [showCheckinPicker, setShowCheckinPicker] = useState(false);
-  const [showCheckoutPicker, setShowCheckoutPicker] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMode, setCalendarMode] = useState('checkin'); // știe dacă alegem check-in sau check-out
+  const [unavailableDates, setUnavailableDates] = useState({}); // ține datele blocate
+
+  // Când selectezi alt hotel, cere de la backend zilele ocupate
+  useEffect(() => {
+    if (selectedHotel) {
+      fetch(`http://172.20.10.2:3000/api/book/unavailable-dates/${selectedHotel.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const marked = {};
+            // Marcăm zilele pline cu roșu și le dezactivăm
+            data.fullDates.forEach(date => {
+              marked[date] = { disabled: true, disableTouchEvent: true, color: '#fca5a5', textColor: '#b91c1c' };
+            });
+            setUnavailableDates(marked);
+          }
+        })
+        .catch(err => console.error(err));
+    } else {
+      setUnavailableDates({});
+    }
+  }, [selectedHotel]);
 
   useEffect(() => {
     if (user) {
@@ -80,8 +110,6 @@ export default function ReservationScreen({ route, navigation }) {
       price: calculateTotal()
     };
 
-    console.log("📤 Booking trimis:", booking);
-
     try {
       const response = await fetch("http://172.20.10.2:3000/api/book/bookings", {
         method: "POST",
@@ -126,34 +154,12 @@ export default function ReservationScreen({ route, navigation }) {
       <Text style={styles.title}>📅 Rezervare Hotel</Text>
 
       <Text style={styles.label}>👤 Date personale</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Numele tău complet"
-        value={ownerName}
-        onChangeText={setOwnerName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email (pentru confirmare)*"
-        value={ownerEmail}
-        onChangeText={setOwnerEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      <TextInput style={styles.input} placeholder="Numele tău complet" value={ownerName} onChangeText={setOwnerName} />
+      <TextInput style={styles.input} placeholder="Email (pentru confirmare)*" value={ownerEmail} onChangeText={setOwnerEmail} keyboardType="email-address" autoCapitalize="none" />
       
       <Text style={styles.label}>🐾 Date animal</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nume animal (ex: Max)"
-        value={petName}
-        onChangeText={setPetName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Tip animal (ex: câine, pisică)"
-        value={petType}
-        onChangeText={setPetType}
-      />
+      <TextInput style={styles.input} placeholder="Nume animal (ex: Max)" value={petName} onChangeText={setPetName} />
+      <TextInput style={styles.input} placeholder="Tip animal (ex: câine, pisică)" value={petType} onChangeText={setPetType} />
 
       <Text style={styles.label}>🏨 Selectează Hotel</Text>
       <FlatList
@@ -162,22 +168,13 @@ export default function ReservationScreen({ route, navigation }) {
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={[
-              styles.hotelButton,
-              selectedHotel?.id === item.id && styles.hotelButtonSelected
-            ]}
+            style={[styles.hotelButton, selectedHotel?.id === item.id && styles.hotelButtonSelected]}
             onPress={() => setSelectedHotel(item)}
           >
-            <Text style={[
-              styles.hotelButtonText,
-              selectedHotel?.id === item.id && styles.hotelButtonTextSelected
-            ]}>
+            <Text style={[styles.hotelButtonText, selectedHotel?.id === item.id && styles.hotelButtonTextSelected]}>
               {item.name}
             </Text>
-            <Text style={[
-              styles.hotelSubText,
-              selectedHotel?.id === item.id && styles.hotelSubTextSelected
-            ]}>
+            <Text style={[styles.hotelSubText, selectedHotel?.id === item.id && styles.hotelSubTextSelected]}>
               {item.city} • {item.price_from || 100} RON/zi
             </Text>
           </TouchableOpacity>
@@ -188,49 +185,18 @@ export default function ReservationScreen({ route, navigation }) {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={styles.label}>📅 Check-in</Text>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowCheckinPicker(true)}>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => { setCalendarMode('checkin'); setShowCalendar(true); }}>
             <Text style={styles.dateBtnText}>{checkin ? checkin.toLocaleDateString('ro-RO') : "Selectează"}</Text>
           </TouchableOpacity>
         </View>
         
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>📅 Check-out</Text>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowCheckoutPicker(true)}>
+          <TouchableOpacity style={styles.dateBtn} onPress={() => { setCalendarMode('checkout'); setShowCalendar(true); }}>
             <Text style={styles.dateBtnText}>{checkout ? checkout.toLocaleDateString('ro-RO') : "Selectează"}</Text>
           </TouchableOpacity>
         </View>
       </View>
-
-      {showCheckinPicker && (
-        <DateTimePicker
-          value={checkin || new Date()}
-          mode="date"
-          display="default"
-          minimumDate={new Date()}
-          onChange={(e, date) => {
-            setShowCheckinPicker(false);
-            if (date) {
-              setCheckin(date);
-              if (checkout && checkout < date) {
-                setCheckout(null);
-              }
-            }
-          }}
-        />
-      )}
-
-      {showCheckoutPicker && (
-        <DateTimePicker
-          value={checkout || new Date(Date.now() + 86400000)}
-          mode="date"
-          display="default"
-          minimumDate={checkin || new Date(Date.now() + 86400000)}
-          onChange={(e, date) => {
-            setShowCheckoutPicker(false);
-            if (date) setCheckout(date);
-          }}
-        />
-      )}
 
       <View style={styles.totalContainer}>
         <Text style={styles.totalLabel}>💰 Total:</Text>
@@ -246,6 +212,36 @@ export default function ReservationScreen({ route, navigation }) {
       >
         <Text style={styles.confirmBtnText}>📨 Trimite cerere de rezervare</Text>
       </TouchableOpacity>
+
+      {/* AICI ESTE MODALUL CU CALENDARUL PE CARE ÎL UITASEI */}
+      <Modal visible={showCalendar} transparent={true} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.calendarPopup}>
+            <Calendar
+              minDate={new Date().toISOString().split('T')[0]} 
+              markedDates={{
+                ...unavailableDates,
+                ...(checkin ? { [checkin.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2563eb' } } : {}),
+                ...(checkout ? { [checkout.toISOString().split('T')[0]]: { selected: true, selectedColor: '#2563eb' } } : {})
+              }}
+              onDayPress={(day) => {
+                const selectedDate = new Date(day.dateString);
+                if (calendarMode === 'checkin') {
+                  setCheckin(selectedDate);
+                  if (checkout && selectedDate >= checkout) setCheckout(null);
+                } else {
+                  setCheckout(selectedDate);
+                }
+                setShowCalendar(false); 
+              }}
+            />
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setShowCalendar(false)}>
+              <Text style={styles.closeBtnText}>Închide</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 }
@@ -297,15 +293,6 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontSize: 20, fontWeight: "700", color: "#1f2937" },
   totalValue: { fontSize: 20, fontWeight: "700", color: "#2563eb" },
-  note: {
-    fontSize: 14,
-    color: "#6b7280",
-    fontStyle: 'italic',
-    marginBottom: 20,
-    padding: 12,
-    backgroundColor: '#fef3c7',
-    borderRadius: 8
-  },
   confirmBtn: { 
     backgroundColor: "#2563eb", 
     paddingVertical: 18, 
@@ -314,5 +301,35 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   confirmBtnDisabled: { backgroundColor: "#94a3b8" },
-  confirmBtnText: { color: "#fff", fontWeight: "700", fontSize: 17 }
+  confirmBtnText: { color: "#fff", fontWeight: "700", fontSize: 17 },
+
+  /* --- STILURI NOI PENTRU CALENDAR --- */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20
+  },
+  calendarPopup: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  closeBtn: {
+    marginTop: 15,
+    padding: 12,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 8,
+    alignItems: 'center'
+  },
+  closeBtnText: {
+    fontWeight: 'bold',
+    color: '#374151',
+    fontSize: 16
+  }
 });

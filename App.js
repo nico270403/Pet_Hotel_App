@@ -23,6 +23,11 @@ import { initDatabase } from "./database";
 import hotelsSeed from "./assets/data/hotels.json";
 import { addHotelDirect } from "./seedHelpers";
 import { AuthProvider } from "./context/AuthContext";
+import ReviewScreen from "./screens/ReviewScreen";
+
+
+
+
 
 import { StripeProvider } from '@stripe/stripe-react-native';
 
@@ -182,6 +187,7 @@ export default function App() {
             <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} options={{ title: "Detalii Hotel" }} />
             
             <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: "Rezervare" }} />
+            <Stack.Screen name="Review" component={ReviewScreen} options={{ title: "Recenzie" }} />
             
             <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Asistent AI" }} />
             <Stack.Screen name="PetProfile" component={PetProfileScreen} options={{ title: "Profil Animal" }} />
