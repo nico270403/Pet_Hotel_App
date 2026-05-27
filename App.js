@@ -1,42 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { Platform, View, Text, ActivityIndicator } from "react-native";
-import { TouchableOpacity } from "react-native";
+import React, { useEffect, useState, useContext } from "react";
+import { Platform, View, Text, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthContext } from "./context/AuthContext";
-import { Alert } from "react-native";
-// === IMPORT ECRANE ===
-import HomeScreen from "./screens/HomeScreen";
-import HotelDetailsScreen from "./screens/HotelDetailsScreen";
-import PetProfileScreen from "./screens/PetProfileScreen";
-import ReservationScreen from "./screens/ReservationScreen"; // Formularul
-import ChatScreen from "./screens/ChatScreen";
-import LoginScreen from "./screens/LoginScreen";
-import RegisterScreen from "./screens/RegisterScreen";
-import BookingsScreen from "./screens/BookingsScreen"; // Istoricul
+import { StripeProvider } from '@stripe/stripe-react-native';
 
-// === IMPORT DATABASE & CONTEXT ===
+import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { initDatabase } from "./database";
 import hotelsSeed from "./assets/data/hotels.json";
 import { addHotelDirect } from "./seedHelpers";
-import { AuthProvider } from "./context/AuthContext";
+
+import HomeScreen from "./screens/HomeScreen";
+import HotelDetailsScreen from "./screens/HotelDetailsScreen";
+import PetProfileScreen from "./screens/PetProfileScreen";
+import ReservationScreen from "./screens/ReservationScreen"; 
+import ChatScreen from "./screens/ChatScreen";
+import BookingsScreen from "./screens/BookingsScreen"; 
 import ReviewScreen from "./screens/ReviewScreen";
+import AdaugaRezervareScreen from './screens/AdaugaRezervareScreen'; 
 
+import WelcomeScreen from "./screens/WelcomeScreen"; 
+import AuthScreen from "./screens/AuthScreen"; 
 
-
-
-
-import { StripeProvider } from '@stripe/stripe-react-native';
+import HotelDashboardScreen from "./screens/HotelDashboardScreen"; 
+import AddHotelScreen from "./screens/AddHotelScreen"; 
+import EditHotelScreen from "./screens/EditHotelScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// === CONFIGURARE TAB-URI (MENIUL DE JOS) ===
 function MainTabs() {
-  const { user, logout } = React.useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -66,65 +62,29 @@ function MainTabs() {
           shadowOpacity: 0.1,
           shadowRadius: 4,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-        },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-
-          if (route.name === "HomeTab") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Pets") {
-            iconName = focused ? "paw" : "paw-outline";
-          } else if (route.name === "AI") {
-            iconName = focused ? "chatbox-ellipses" : "chatbox-ellipses-outline";
-          } else if (route.name === "MyBookings") { // Istoric
-            iconName = focused ? "list" : "list-outline";
-          } else if (route.name === "ReservationTab") { // Formular (Nume schimbat pentru a nu face conflict)
-            iconName = focused ? "add-circle" : "add-circle-outline";
-          }
-
+          if (route.name === "HomeTab") iconName = focused ? "home" : "home-outline";
+          else if (route.name === "Pets") iconName = focused ? "paw" : "paw-outline";
+          else if (route.name === "AI") iconName = focused ? "chatbox-ellipses" : "chatbox-ellipses-outline";
+          else if (route.name === "MyBookings") iconName = focused ? "list" : "list-outline";
+          else if (route.name === "ReservationTab") iconName = focused ? "add-circle" : "add-circle-outline";
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#2563eb",
         tabBarInactiveTintColor: "#9ca3af",
       })}
     >
-      <Tab.Screen 
-        name="HomeTab" 
-        component={HomeScreen} 
-        options={{ title: "Acasă" }} 
-      />
-      
-      <Tab.Screen 
-        name="Pets" 
-        component={PetProfileScreen} 
-        options={{ title: "Animale" }} 
-      />
-
-      <Tab.Screen 
-        name="ReservationTab" 
-        component={ReservationScreen} 
-        options={{ title: "Rezervă" }} 
-      />
-
-      <Tab.Screen 
-        name="MyBookings" 
-        component={BookingsScreen} 
-        options={{ title: "Istoric" }} 
-      />
-
-      <Tab.Screen 
-        name="AI" 
-        component={ChatScreen} 
-        options={{ title: "AI Chat" }} 
-      />
+      <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: "Acasă" }} />
+      <Tab.Screen name="Pets" component={PetProfileScreen} options={{ title: "Animale" }} />
+      <Tab.Screen name="ReservationTab" component={ReservationScreen} options={{ title: "Rezervă" }} />
+      <Tab.Screen name="MyBookings" component={BookingsScreen} options={{ title: "Istoric" }} />
+      <Tab.Screen name="AI" component={ChatScreen} options={{ title: "AI Chat" }} />
     </Tab.Navigator>
   );
 }
 
-// === LOADING & ERROR ===
 function LoadingScreen() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
@@ -143,7 +103,65 @@ function ErrorScreen({ error }) {
   );
 }
 
-// === APP ===
+function RootNavigator() {
+  const { user } = useContext(AuthContext);
+
+  return (
+    <Stack.Navigator screenOptions={{ headerTitleAlign: "center", headerShadowVisible: false }}>
+      {!user ? (
+        <>
+          <Stack.Screen 
+            name="Welcome" 
+            component={WelcomeScreen} 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen 
+            name="Auth" 
+            component={AuthScreen} 
+            options={{ headerShown: false }} 
+          />
+        </>
+      ) : user.role === 'manager' ? (
+        <>
+          {user.hotel_id ? (
+            <Stack.Screen 
+              name="HotelDashboard" 
+              component={HotelDashboardScreen} 
+              options={{ headerShown: false }} 
+            />
+          ) : (
+            <Stack.Screen 
+              name="AddHotel" 
+              component={AddHotelScreen} 
+              options={{ headerShown: false }} 
+            />
+          )}
+          <Stack.Screen 
+            name="EditHotel" 
+            component={EditHotelScreen} 
+            options={{ headerShown: false }} 
+          />
+
+          <Stack.Screen 
+            name="AdaugaRezervare" 
+            component={AdaugaRezervareScreen} 
+            options={{ title: 'Adaugă Rezervare' }} 
+          />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} options={{ title: "Detalii Hotel" }} />
+          <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: "Rezervare" }} />
+          <Stack.Screen name="Review" component={ReviewScreen} options={{ title: "Recenzie" }} />
+          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Asistent AI" }} />
+          <Stack.Screen name="PetProfile" component={PetProfileScreen} options={{ title: "Profil Animal" }} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
   const [appState, setAppState] = useState('loading');
   const [error, setError] = useState('');
@@ -175,24 +193,7 @@ export default function App() {
     <AuthProvider>
       <StripeProvider publishableKey="pk_test_51T2ERd12ViiqPzeDSePd8FBLZaGRNjRApKzQbRe4GNEQ20zedI3s927aJnLPZRvvBytSp2wRPL3LLyUWcXVVwICS00hyvcnFMy">
         <NavigationContainer>
-          <Stack.Navigator 
-            initialRouteName="Login"
-            screenOptions={{ headerTitleAlign: "center", headerShadowVisible: false }}
-          >
-            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-
-            <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
-
-            <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} options={{ title: "Detalii Hotel" }} />
-            
-            <Stack.Screen name="Reservation" component={ReservationScreen} options={{ title: "Rezervare" }} />
-            <Stack.Screen name="Review" component={ReviewScreen} options={{ title: "Recenzie" }} />
-            
-            <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Asistent AI" }} />
-            <Stack.Screen name="PetProfile" component={PetProfileScreen} options={{ title: "Profil Animal" }} />
-
-          </Stack.Navigator>
+          <RootNavigator />
         </NavigationContainer>
       </StripeProvider>
     </AuthProvider>

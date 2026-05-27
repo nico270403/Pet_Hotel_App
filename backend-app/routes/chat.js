@@ -3,13 +3,11 @@ import { ragChat } from './rag-simple.js';
 
 const router = express.Router();
 
-// ==========================================
-// 🚀 RUTA NOUĂ DE ÎNCĂLZIRE (Care lipsea!)
-// ==========================================
+
 router.get('/warmup', async (req, res) => {
   try {
     console.log("🔥 Încep încălzirea AI-ului în fundal...");
-    await ragChat("Salut", []); // Aici trezim efectiv AI-ul
+    await ragChat("Salut", []); 
     res.json({ success: true, message: "AI is awake and ready!" });
   } catch (err) {
     console.error("❌ Eroare la încălzire:", err);
@@ -17,9 +15,7 @@ router.get('/warmup', async (req, res) => {
   }
 });
 
-// ==========================================
-// RUTA PRINCIPALĂ DE CHAT
-// ==========================================
+
 router.post('/', async (req, res) => {
   try {
     const { message, messages = [] } = req.body;
@@ -46,7 +42,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Ruta de test backend
 router.get('/test', async (req, res) => {
   try {
     const result = await ragChat("Caut hotel pentru câine în București");

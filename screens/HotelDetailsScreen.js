@@ -29,13 +29,11 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchHotelDetails = async () => {
       try {
-        // 1. Aducem detaliile hotelului
         const resHotel = await fetch(`${API_BASE}/hotels/${hotelId}`);
         if (!resHotel.ok) throw new Error("Hotel not found");
         const hotelData = await resHotel.json();
         setHotel(hotelData.hotel);
 
-        // 2. Aducem imaginile
         const resImages = await fetch(`${API_BASE}/hotel_images/${hotelId}`);
         const imagesData = await resImages.json();
         setImages(
@@ -44,7 +42,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             : [{ uri: hotelData.hotel?.image_url || "https://placedog.net/400/300?random=1" }]
         );
 
-        // 3. Aducem recenziile (CODUL NOU)
         try {
           const resReviews = await fetch(`${API_BASE}/reviews/hotel/${hotelId}`);
           const reviewsData = await resReviews.json();
@@ -80,13 +77,13 @@ const HotelDetailsScreen = ({ route, navigation }) => {
       </View>
     );
 
-  
-  const hotelLocation = {
-    latitude: hotel.latitude || 45.7489, 
-    longitude: hotel.longitude || 21.2087,
+  const hasCoordinates = hotel.latitude && hotel.longitude;
+  const hotelLocation = hasCoordinates ? {
+    latitude: parseFloat(hotel.latitude),
+    longitude: parseFloat(hotel.longitude),
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
-  };
+  } : null;
 
   return (
     <View style={{ flex: 1 }}> 
@@ -109,7 +106,7 @@ const HotelDetailsScreen = ({ route, navigation }) => {
           <View style={styles.headerRow}>
             <Text style={styles.hotelName}>{hotel.name}</Text>
             <View style={styles.ratingBadge}>
-               <Text style={styles.ratingText}>⭐ {hotel.rating || "4.5"}</Text>
+               <Text style={styles.ratingText}>⭐ {hotel.rating || "Nou"}</Text>
             </View>
           </View>
 
@@ -121,22 +118,44 @@ const HotelDetailsScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Despre Locație</Text>
           <Text style={styles.description}>{hotel.short_description || "Descriere indisponibilă."}</Text>
 
-          {/* HARTĂ */}
-          <Text style={styles.sectionTitle}>Locație pe Hartă 🗺️</Text>
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              initialRegion={hotelLocation}
-              scrollEnabled={false} 
-            >
-              <Marker
-                coordinate={hotelLocation}
-                title={hotel.name}
-                description={hotel.address}
-              />
-            </MapView>
+          {/* SECȚIUNE ANIMALE ACCEPTATE */}
+          <Text style={styles.sectionTitle}>Animale Acceptate 🐾</Text>
+          <View style={styles.animalsContainer}>
+            {hotel.animals && hotel.animals.length > 0 ? (
+              hotel.animals.map((animal, index) => (
+                <View key={index} style={styles.animalChip}>
+                  <Text style={styles.animalChipText}>{animal}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.description}>Nu au fost specificate animale.</Text>
+            )}
           </View>
-          {/* SECȚIUNE NOUĂ: Recenzii */}
+
+          {/* HARTĂ STRICTĂ */}
+          <Text style={styles.sectionTitle}>Locație pe Hartă 🗺️</Text>
+          {hasCoordinates ? (
+            <View style={styles.mapContainer}>
+              <MapView
+                style={styles.map}
+                initialRegion={hotelLocation}
+                scrollEnabled={false} 
+              >
+                <Marker
+                  coordinate={hotelLocation}
+                  title={hotel.name}
+                  description={hotel.address}
+                />
+              </MapView>
+            </View>
+          ) : (
+            <View style={styles.noMapContainer}>
+              <Ionicons name="map-outline" size={40} color="#9ca3af" />
+              <Text style={styles.noMapText}>Locația exactă pe hartă nu este disponibilă pentru acest hotel.</Text>
+            </View>
+          )}
+
+          {/* Recenzii */}
           <Text style={styles.sectionTitle}>Părerea Clienților ({reviews.length})</Text>
           
           {reviews.length === 0 ? (
@@ -182,11 +201,15 @@ const HotelDetailsScreen = ({ route, navigation }) => {
                 <Text style={styles.contactText}>Website</Text>
               </TouchableOpacity>
             )}
+            
+            {!hotel.phone && !hotel.email && !hotel.website && (
+              <Text style={styles.description}>Nicio informație de contact disponibilă.</Text>
+            )}
           </View>
         </View>
       </ScrollView>
 
-      {/*  Buton Fix Jos pentru Rezervare */}
+      {/* Buton Fix Jos */}
       <View style={styles.bottomBar}>
         <View>
           <Text style={styles.priceLabel}>Preț estimativ</Text>
@@ -219,36 +242,34 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10, color: '#111827' },
   description: { fontSize: 15, lineHeight: 24, color: '#4b5563' },
 
-  // Stiluri Recenzii
+  animalsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
+  animalChip: { 
+    backgroundColor: '#dbeafe', 
+    paddingVertical: 6, 
+    paddingHorizontal: 12, 
+    borderRadius: 16, 
+    marginRight: 8, 
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#bfdbfe'
+  },
+  animalChipText: { color: '#1d4ed8', fontWeight: '600', fontSize: 14 },
+
   reviewCard: {
     backgroundColor: '#f9fafb',
     padding: 15,
     borderRadius: 12,
     marginRight: 15,
-    width: 250, // Lățime fixă ca să arate ca niște carduri
+    width: 250, 
     borderWidth: 1,
     borderColor: '#e5e7eb',
     marginTop: 10,
     marginBottom: 10,
   },
-  reviewName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    color: '#1f2937',
-    marginBottom: 5,
-  },
-  reviewStars: {
-    fontSize: 14,
-    color: '#fbbf24',
-    marginBottom: 8,
-  },
-  reviewComment: {
-    fontSize: 14,
-    color: '#4b5563',
-    fontStyle: 'italic',
-  },
+  reviewName: { fontWeight: 'bold', fontSize: 16, color: '#1f2937', marginBottom: 5 },
+  reviewStars: { fontSize: 14, color: '#fbbf24', marginBottom: 8 },
+  reviewComment: { fontSize: 14, color: '#4b5563', fontStyle: 'italic' },
 
-  // Stiluri Hartă
   mapContainer: {
     height: 200,
     borderRadius: 16,
@@ -257,17 +278,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb'
   },
-  map: {
-    width: '100%',
-    height: '100%',
+  map: { width: '100%', height: '100%' },
+  
+  noMapContainer: {
+    height: 150,
+    borderRadius: 16,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 20
   },
+  noMapText: { color: '#6b7280', marginTop: 10, textAlign: 'center', fontSize: 14 },
 
-  // Stiluri Contact
   contactContainer: { backgroundColor: '#f9fafb', padding: 15, borderRadius: 12 },
   contactItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   contactText: { marginLeft: 10, fontSize: 16, color: '#374151' },
 
-  // Bara de jos fixă
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -280,8 +309,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
-    elevation: 20, // umbră android
-    shadowColor: "#000", // umbră ios
+    elevation: 20, 
+    shadowColor: "#000", 
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,

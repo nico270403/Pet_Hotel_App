@@ -31,10 +31,9 @@ export default function ReservationScreen({ route, navigation }) {
   const [checkin, setCheckin] = useState(null);
   const [checkout, setCheckout] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMode, setCalendarMode] = useState('checkin'); // știe dacă alegem check-in sau check-out
-  const [unavailableDates, setUnavailableDates] = useState({}); // ține datele blocate
+  const [calendarMode, setCalendarMode] = useState('checkin'); 
+  const [unavailableDates, setUnavailableDates] = useState({}); 
 
-  // Când selectezi alt hotel, cere de la backend zilele ocupate
   useEffect(() => {
     if (selectedHotel) {
       fetch(`http://172.20.10.2:3000/api/book/unavailable-dates/${selectedHotel.id}`)
@@ -42,7 +41,6 @@ export default function ReservationScreen({ route, navigation }) {
         .then(data => {
           if (data.success) {
             const marked = {};
-            // Marcăm zilele pline cu roșu și le dezactivăm
             data.fullDates.forEach(date => {
               marked[date] = { disabled: true, disableTouchEvent: true, color: '#fca5a5', textColor: '#b91c1c' };
             });

@@ -9,7 +9,6 @@ export default function ChatScreen({ navigation, route }) {
   
   const { user } = useContext(AuthContext);
   
-  // Salvăm datele animalului DEFINITIV în state pentru a nu se mai pierde la re-randare
   const [savedPetName] = useState(route.params?.petName || "");
   const [savedPetType] = useState(route.params?.petType || "animal");
 
@@ -140,7 +139,6 @@ export default function ChatScreen({ navigation, route }) {
     if (hotel) setSelectedHotel(hotel);
     
     if (savedPetName) {
-      // Avem datele animalului din state, sărim direct!
       setReservationData(prev => ({ ...prev, petName: savedPetName, petType: savedPetType }));
       
       if (user && user.name) {
@@ -158,7 +156,6 @@ export default function ChatScreen({ navigation, route }) {
         askQuestion(`🏨 Rezervare la "${hotel ? hotel.name : 'hotel'}".\n\nAm preluat automat datele pentru **${savedPetName}**.\n\n**Pasul 3:** Care este numele tău complet?`);
       }
     } else {
-      // Nu avem datele, începem normal de la pasul 1
       setReservationStep('petName');
       const introMsg = hotel 
         ? `🏨 Rezervare la "${hotel.name}".\n\n**Pasul 1:** Care este numele animalului tău?`

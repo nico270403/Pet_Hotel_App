@@ -10,16 +10,13 @@ router.post("/", async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Inserăm recenzia
     await client.query(
       "INSERT INTO reviews (hotel_id, user_id, booking_id, rating, comment) VALUES ($1, $2, $3, $4, $5)",
       [hotel_id, user_id, booking_id, rating, comment]
     );
 
-    // 2. Marcăm rezervarea ca fiind evaluată
     await client.query("UPDATE bookings SET reviewed = TRUE WHERE id = $1", [booking_id]);
 
-    // 3. Recalculăm media rating-ului pentru hotel
     const avgRes = await client.query(
       "SELECT AVG(rating) as new_rating FROM reviews WHERE hotel_id = $1",
       [hotel_id]
@@ -27,7 +24,6 @@ router.post("/", async (req, res) => {
     
     const newRating = parseFloat(avgRes.rows[0].new_rating).toFixed(1);
 
-    // 4. Actualizăm rating-ul în tabela hotels
     await client.query("UPDATE hotels SET rating = $1 WHERE id = $2", [newRating, hotel_id]);
 
     await client.query('COMMIT');
@@ -41,7 +37,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Rută pentru a citi recenziile unui hotel specific
 router.get("/hotel/:hotelId", async (req, res) => {
   try {
     const { hotelId } = req.params;

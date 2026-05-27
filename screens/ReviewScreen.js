@@ -22,13 +22,12 @@ export default function ReviewScreen({ route, navigation }) {
         }),
       });
 
-      // Citim textul brut exact așa cum vine de la server
       const text = await response.text(); 
       console.log("Răspuns brut server:", text);
 
       let data;
       try {
-        data = JSON.parse(text); // Încercăm parsarea în JSON
+        data = JSON.parse(text); 
       } catch (parseError) {
         throw new Error(`Serverul a returnat un format invalid (posibil 404): ${text.substring(0, 50)}...`);
       }
@@ -37,7 +36,6 @@ export default function ReviewScreen({ route, navigation }) {
         Alert.alert("Mulțumim! 🎉", "Recenzia ta a fost salvată.");
         navigation.goBack();
       } else {
-        // Dacă a răspuns un JSON dar e o eroare de backend
         Alert.alert("Eroare Backend", data.error || "Eroare necunoscută la server");
       }
     } catch (error) {

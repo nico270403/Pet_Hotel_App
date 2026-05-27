@@ -138,7 +138,7 @@ Mesajul curent: "${message}"`;
         prompt: prompt,
         stream: false,
         keep_alive: -1,
-        format: "json", // 🔴 ACEASTA ESTE LINIA MAGICĂ!
+        format: "json", 
         options: { 
           temperature: 0.0,
           num_predict: 50 

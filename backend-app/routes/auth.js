@@ -1,12 +1,9 @@
 import express from "express";
 import pool from "../db.js";
-import { Expo } from 'expo-server-sdk'
-
+import { Expo } from 'expo-server-sdk';
 
 let expo = new Expo();
-
 const router = express.Router();
-
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -25,7 +22,9 @@ router.post("/login", async (req, res) => {
           id: user.id, 
           name: user.name, 
           email: user.email,
-          phone: user.phone 
+          phone: user.phone,
+          role: user.role,         
+          hotel_id: user.hotel_id  
         } 
       });
     } else {
@@ -39,14 +38,16 @@ router.post("/login", async (req, res) => {
 
 
 router.post("/register", async (req, res) => {
-  const { name, email, password, phone } = req.body; 
+  const { name, email, password, phone, role } = req.body; 
+
+  const userRole = role === 'manager' ? 'manager' : 'client';
 
   try {
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, phone) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING id, name, email, phone`,
-      [name, email, password, phone || null]
+      `INSERT INTO users (name, email, password_hash, phone, role) 
+       VALUES ($1, $2, $3, $4, $5) 
+       RETURNING id, name, email, phone, role`,
+      [name, email, password, phone || null, userRole]
     );
     
     res.json({ success: true, user: result.rows[0] });
@@ -80,7 +81,6 @@ router.get("/my-bookings/:userId", async (req, res) => {
   }
 });
 
-// Rută pentru salvarea token-ului de notificări
 router.post("/update-push-token", async (req, res) => {
   const { userId, token } = req.body;
   
@@ -102,21 +102,17 @@ router.post("/update-push-token", async (req, res) => {
 });
 
 
-// Rută pentru a testa trimiterea unei notificări
 router.get("/test-push/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // 1. Luăm token-ul userului din baza de date
     const result = await pool.query("SELECT expo_push_token FROM users WHERE id = $1", [userId]);
     const pushToken = result.rows[0]?.expo_push_token;
 
-    // 2. Verificăm dacă token-ul există și e valid
     if (!pushToken || !Expo.isExpoPushToken(pushToken)) {
       return res.status(400).send(`❌ Userul ${userId} nu are un token valid setat.`);
     }
 
-    // 3. Creăm mesajul notificării
     let messages = [{
       to: pushToken,
       sound: 'default',
@@ -125,7 +121,6 @@ router.get("/test-push/:userId", async (req, res) => {
       data: { redirectTo: 'MyBookings' },
     }];
 
-    // 4. Trimitem mesajul
     let chunks = expo.chunkPushNotifications(messages);
     let tickets = [];
     for (let chunk of chunks) {
@@ -139,6 +134,5 @@ router.get("/test-push/:userId", async (req, res) => {
     res.status(500).send(`Eroare: ${error.message}`);
   }
 });
-
 
 export default router;

@@ -4,19 +4,19 @@ import express from "express";
 import cors from "cors";
 import pkg from "pg";
 
-// === IMPORTURI RUTE ===
 import hotelImagesRoutes from "./routes/hotelImages.js";
 import chatRoutes from "./routes/chat.js";
 import bookRoutes from "./routes/book.js";
 import authRoutes from "./routes/auth.js"; 
 import paymentRoutes from "./routes/payment.js";
 import reviewRoute from "./routes/reviews.js";
+import dashboardRoutes from './routes/dashboard.js';
+
 
 const { Pool } = pkg;
 
 const app = express();
 
-// CORS SUPER PERMISIV
 app.use(cors({
   origin: true, 
   credentials: true,
@@ -36,12 +36,12 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// === ACTIVARE RUTE ===
 app.use("/api/hotel_images", hotelImagesRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/book", bookRoutes);
 app.use("/api/auth", authRoutes); 
 app.use("/api/payment", paymentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 
 const pool = new Pool({
@@ -54,7 +54,6 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
 });
 
-// Test conexiune DB
 const testConnection = async () => {
   let client;
   try {
@@ -130,13 +129,24 @@ app.get("/api/hotels/:id", async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Hotel not found" });
     }
+
+    const animalsResult = await pool.query(`
+      SELECT a.name FROM animals a 
+      JOIN hotel_animals ha ON a.id = ha.animal_id 
+      WHERE ha.hotel_id = $1
+    `, [id]);
     
-    res.json({ hotel: result.rows[0] });
+    const hotelData = result.rows[0];
+    hotelData.animals = animalsResult.rows.map(row => row.name); 
+    
+    res.json({ hotel: hotelData });
   } catch (error) {
     console.error("Error fetching hotel:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
+
+
 
 
 const PORT = process.env.PORT || 3000;

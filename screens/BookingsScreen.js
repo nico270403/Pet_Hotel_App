@@ -7,8 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useStripe } from '@stripe/stripe-react-native'; 
 
 export default function BookingsScreen({ navigation }) {
-  const { user } = useContext(AuthContext);
-  const { initPaymentSheet, presentPaymentSheet } = useStripe(); 
+const { user, logout } = useContext(AuthContext);  const { initPaymentSheet, presentPaymentSheet } = useStripe(); 
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,7 +15,7 @@ export default function BookingsScreen({ navigation }) {
   const [payingId, setPayingId] = useState(null); 
 
   const fetchBookings = async () => {
-    if (!user) return;
+    if (!user || user.isGuest) return;
     setLoading(true);
     try {
       const response = await fetch(`http://172.20.10.2:3000/api/auth/my-bookings/${user.id}`);
@@ -32,7 +31,7 @@ export default function BookingsScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      if (user) {
+      if (user && !user.isGuest) {
         fetchBookings();
       } else {
         setBookings([]); 
@@ -130,11 +129,11 @@ export default function BookingsScreen({ navigation }) {
     return '⏳ În așteptare';
   };
 
-  if (!user) {
+  if (!user || user.isGuest) {
     return (
       <View style={styles.center}>
         <Text>Trebuie să fii logat.</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.btn}>
+        <TouchableOpacity onPress={logout} style={styles.btn}>
           <Text style={{color:'#fff'}}>Login</Text>
         </TouchableOpacity>
       </View>

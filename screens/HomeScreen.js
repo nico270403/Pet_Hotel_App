@@ -245,9 +245,9 @@ const HomeScreen = ({ navigation }) => {
           <MapView
             style={styles.fullMap}
             initialRegion={{
-              latitude: 45.7489, // Centrat pe Timișoara by default
+              latitude: 45.7489, 
               longitude: 21.2087,
-              latitudeDelta: 4, // Zoom mai mare pentru a vedea toată țara inițial
+              latitudeDelta: 4, 
               longitudeDelta: 4,
             }}
           >

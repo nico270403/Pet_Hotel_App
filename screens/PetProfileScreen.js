@@ -21,9 +21,7 @@ export default function PetProfileScreen({ navigation }) {
 
   const [pets, setPets] = useState([]);
 
-  //Functia care deschide galeria telefonului
   const pickImage = async () => {
-    // Cer permisiunea de a accesa galeria 
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (permissionResult.granted === false) {
@@ -34,9 +32,9 @@ export default function PetProfileScreen({ navigation }) {
     
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // Permit utilizatorului să taie/încadreze poza
-      aspect: [1, 1], // Fortez poza să fie pătrată (1:1) pentru profil
-      quality: 0.5, // Reduc calitatea pentru a nu ocupa multă memorie
+      allowsEditing: true, 
+      aspect: [1, 1], 
+      quality: 0.5, 
     });
 
     if (!result.canceled) {
@@ -53,7 +51,6 @@ export default function PetProfileScreen({ navigation }) {
     const newPet = { id: Date.now().toString(), name, species, breed, age, allergies, image };
     setPets(prev => [...prev, newPet]);
 
-    // Resetez câmpurile după salvare
     setName(""); setSpecies(""); setBreed(""); setAge(""); setAllergies(""); setImage(null);
   };
 
@@ -180,7 +177,6 @@ const styles = StyleSheet.create({
   btnAskAISmall: { backgroundColor: '#ecfdf5', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginTop: 10, alignSelf: 'flex-start', borderWidth: 1, borderColor: '#10b981' },
   btnAskAIText: { color: '#059669', fontWeight: '600', fontSize: 13 },
   
-  // Stiluri noi pentru selectorul de imagini
   imagePickerContainer: { marginTop: 10 },
   btnPickImage: { backgroundColor: '#f3f4f6', padding: 15, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#d1d5db', borderStyle: 'dashed' },
   btnPickImageText: { color: '#4b5563', fontWeight: '600' },
