@@ -54,11 +54,33 @@ export default function AuthScreen({ route, navigation }) {
       </Text>
 
       {!isLogin && (
-        <TextInput style={styles.input} placeholder={isHotel ? "Numele Managerului" : "Numele tău"} value={name} onChangeText={setName} />
+        <TextInput 
+          style={styles.input} 
+          placeholder={isHotel ? "Numele Managerului" : "Numele tău"} 
+          placeholderTextColor="#94a3b8" 
+          value={name} 
+          onChangeText={setName} 
+        />
       )}
       
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Parolă" value={password} onChangeText={setPassword} secureTextEntry />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Email" 
+        placeholderTextColor="#94a3b8" 
+        value={email} 
+        onChangeText={setEmail} 
+        keyboardType="email-address" 
+        autoCapitalize="none" 
+      />
+      
+      <TextInput 
+        style={styles.input} 
+        placeholder="Parolă" 
+        placeholderTextColor="#94a3b8" 
+        value={password} 
+        onChangeText={setPassword} 
+        secureTextEntry 
+      />
 
       <TouchableOpacity style={styles.mainBtn} onPress={handleAuth} disabled={isLoading}>
         {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.mainBtnText}>{isLogin ? 'Conectare' : 'Creează Cont'}</Text>}

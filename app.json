@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "hotel-app",
+    "name": "Pet Hotel",
     "slug": "hotel-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,24 +20,24 @@
       }
     },
     "android": {
+      "package": "com.nico27c.hotelapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBDKzqwULzH06UwWLl6pDy7kF5W9NCJT-E"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-sqlite"//,
-      // [
-      //   "@stripe/stripe-react-native",
-      //   {
-      //     "merchantIdentifier": "merchant.com.hotelapp",
-      //     "enableGooglePay": true
-      //   }
-      // ]
+      "expo-sqlite",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {

@@ -152,8 +152,13 @@ const HomeScreen = ({ navigation }) => {
 
   >
     <Image 
-      source={{ uri: item.image_url || 'https://placedog.net/400/300?random=' + item.id }} 
+      source={{ 
+        uri: (item.image_url && item.image_url.trim() !== '') 
+          ? item.image_url 
+          : 'https://placedog.net/400/300?random=' + item.id 
+      }} 
       style={styles.hotelImage}
+      resizeMode="contain"
     />
     <View style={styles.hotelInfo}>
       <Text style={styles.hotelName}>{item.name || 'Unknown Hotel'}</Text>
@@ -209,20 +214,25 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* HEADER-UL MODIFICAT (cu butonul de hartă) */}
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <View>
-            <Text style={styles.headerTitle}>Pet Hotels</Text>
-            <Text style={styles.headerSubtitle}>Find the perfect stay for your pet</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          
+          <View style={{ flex: 1, paddingRight: 15 }}>
+            <Text style={styles.headerTitle}>Pet Hotel</Text>
+            <Text style={styles.headerSubtitle} numberOfLines={2}>
+              Găsește cazarea perfectă pentru animalul tău
+            </Text>
           </View>
           
-          <TouchableOpacity 
-            style={styles.mapToggleButton} 
-            onPress={() => setShowMap(!showMap)}
-          >
-            <Text style={styles.mapToggleText}>{showMap ? "📋 Listă" : "🗺️ Hartă"}</Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity 
+              style={styles.mapToggleButton} 
+              onPress={() => setShowMap(!showMap)}
+            >
+              <Text style={styles.mapToggleText}>{showMap ? "📋 Listă" : "🗺️ Hartă"}</Text>
+            </TouchableOpacity>
+          </View>
+
         </View>
         
         <View style={styles.connectionStatus}>
@@ -236,7 +246,6 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* AICI ESTE CODUL TĂU NOU PENTRU HARTĂ / LISTĂ */}
       {loading ? (
         renderLoadingState()
       ) : showMap ? (
@@ -395,6 +404,7 @@ const styles = StyleSheet.create({
   hotelImage: {
     width: '100%',
     height: 200,
+    backgroundColor: '#f1f5f9', 
   },
   hotelInfo: {
     padding: 16,

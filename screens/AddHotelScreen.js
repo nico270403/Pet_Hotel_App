@@ -32,11 +32,11 @@ export default function AddHotelScreen({ navigation }) {
         <Text style={{ fontSize: 80, marginBottom: 10 }}>🏨</Text>
         <Text style={styles.promoTitle}>Dezvoltă-ți afacerea cu noi!</Text>
         <View style={styles.promoList}>
-          <Text style={styles.promoItem}>✅ Atrage mii de clienți noi lunar</Text>
+          <Text style={styles.promoItem}>✅ Atrage clienți noi lunar</Text>
           <Text style={styles.promoItem}>✅ Gestionează rezervările direct din telefon</Text>
-          <Text style={styles.promoItem}>✅ Primești plăți sigure prin aplicație</Text>
+          <Text style={styles.promoItem}>✅ Acces asupra vizualizarea detaliilor importante: sume încasate, rezervări, rata de ocupare. </Text>
         </View>
-        <Text style={styles.promoSubtitle}>Înscrie-ți pet-hotelul sau clinica veterinară gratuit și începe să primești rezervări imediat.</Text>
+        <Text style={styles.promoSubtitle}>Înscrie-ți pet-hotelul gratuit și începe să primești rezervări imediat.</Text>
         
         <TouchableOpacity style={styles.promoBtn} onPress={() => setShowGuestForm(true)}>
           <Text style={styles.promoBtnText}>Creează Cont Hotel Acum</Text>

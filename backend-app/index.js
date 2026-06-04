@@ -98,7 +98,7 @@ app.get("/api/hotels", async (req, res) => {
     console.log("📡 Cerere pentru hoteluri primită");
     
     const result = await pool.query(`
-      SELECT id, name, short_description, city, rating, image_url, latitude, longitude
+      SELECT id, name, short_description, city, rating, image_url, latitude, longitude, price_per_day
       FROM hotels 
       ORDER BY rating DESC
     `);

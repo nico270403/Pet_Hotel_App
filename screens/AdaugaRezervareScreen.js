@@ -1,269 +1,4 @@
-// import React, { useState, useEffect, useContext } from 'react';
-// import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
-// import { AuthContext } from '../context/AuthContext';
-// import { Calendar } from 'react-native-calendars';
-// import { useNavigation } from '@react-navigation/native';
-// import { Ionicons } from '@expo/vector-icons';
-
-// const getLocalDateString = (d) => {
-//   const year = d.getFullYear();
-//   const month = String(d.getMonth() + 1).padStart(2, '0');
-//   const day = String(d.getDate()).padStart(2, '0');
-//   return `${year}-${month}-${day}`;
-// };
-
-// export default function AdaugaRezervareScreen() {
-//   const navigation = useNavigation();
-//   const { user } = useContext(AuthContext);
-
-//   const [petName, setPetName] = useState('');
-//   const [dailyPrice, setDailyPrice] = useState('');
-//   const [dates, setDates] = useState({ start: '', end: '' });
-  
-//   const [loading, setLoading] = useState(true);
-//   const [disabledDatesMap, setDisabledDatesMap] = useState({});
-//   const [fullDatesArray, setFullDatesArray] = useState([]);
-
-//   useEffect(() => {
-//     fetchHotelAvailability();
-//   }, []);
-
-//   const fetchHotelAvailability = async () => {
-//     try {
-//       const response = await fetch(`http://172.20.10.2:3000/api/dashboard/${user?.hotel_id}`);
-//       const json = await response.json();
-      
-//       if (json.success) {
-//         calculateDisabledDates(json.bookingIntervals, json.stats.capacitateTotala);
-//       }
-//     } catch (error) {
-//       console.error(error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const calculateDisabledDates = (intervals, capacity) => {
-//     let map = {};
-//     let fullDates = [];
-//     const today = new Date();
-//     today.setHours(0,0,0,0);
-//     const todayStr = getLocalDateString(today);
-
-//     let pastDate = new Date();
-//     pastDate.setDate(pastDate.getDate() - 60);
-//     while(pastDate < today) {
-//       map[getLocalDateString(pastDate)] = { disabled: true, disableTouchEvent: true, color: '#f1f5f9', textColor: '#cbd5e1' };
-//       pastDate.setDate(pastDate.getDate() + 1);
-//     }
-
-//     if (capacity > 0) {
-//       let checkDate = new Date(today);
-//       for(let i=0; i<365; i++) {
-//         const dateStr = getLocalDateString(checkDate);
-//         let count = 0;
-        
-//         intervals.forEach(b => {
-//           const s = getLocalDateString(new Date(b.start_date));
-//           const e = getLocalDateString(new Date(b.end_date));
-//           if(dateStr >= s && dateStr <= e) count++;
-//         });
-
-//         if(count >= capacity) {
-//           fullDates.push(dateStr);
-//           map[dateStr] = { 
-//             disabled: true, 
-//             disableTouchEvent: true, 
-//             color: '#fee2e2', 
-//             textColor: '#ef4444',
-//             customStyles: {
-//               text: { textDecorationLine: 'line-through', color: '#ef4444', fontWeight: 'bold' }
-//             }
-//           };
-//         }
-//         checkDate.setDate(checkDate.getDate() + 1);
-//       }
-//     }
-
-//     setFullDatesArray(fullDates);
-//     setDisabledDatesMap(map);
-//   };
-
-//   const handleDayPress = (day) => {
-//     if (disabledDatesMap[day.dateString] && disabledDatesMap[day.dateString].disabled) {
-//       return;
-//     }
-
-//     if (!dates.start || (dates.start && dates.end)) {
-//       setDates({ start: day.dateString, end: day.dateString });
-//     } else {
-//       if (new Date(day.dateString) >= new Date(dates.start)) {
-//         setDates({ ...dates, end: day.dateString });
-//       } else {
-//         setDates({ start: day.dateString, end: day.dateString });
-//       }
-//     }
-//   };
-
-//   const calculateTotal = () => {
-//     if(!dates.start || !dates.end || !dailyPrice) return 0;
-//     const start = new Date(dates.start);
-//     const end = new Date(dates.end);
-//     const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-//     return days * parseFloat(dailyPrice);
-//   };
-
-//   const getCombinedMarkedDates = () => {
-//     let combined = { ...disabledDatesMap };
-    
-//     if (dates.start) {
-//       if (dates.start === dates.end) {
-//         combined[dates.start] = { startingDay: true, endingDay: true, color: '#2563EB', textColor: 'white' };
-//       } else {
-//         let d = new Date(dates.start);
-//         const end = new Date(dates.end);
-        
-//         combined[getLocalDateString(d)] = { startingDay: true, color: '#2563EB', textColor: 'white' };
-//         d.setDate(d.getDate() + 1);
-        
-//         while (d < end) {
-//           combined[getLocalDateString(d)] = { color: '#60a5fa', textColor: 'white' };
-//           d.setDate(d.getDate() + 1);
-//         }
-//         combined[getLocalDateString(end)] = { endingDay: true, color: '#2563EB', textColor: 'white' };
-//       }
-//     }
-//     return combined;
-//   };
-
-//   const handleSave = async () => {
-//     if (!petName || !dates.start || !dates.end || !dailyPrice) {
-//       Alert.alert("Eroare", "Te rog completează toate câmpurile.");
-//       return;
-//     }
-
-//     let checkD = new Date(dates.start);
-//     let endD = new Date(dates.end);
-//     while(checkD <= endD) {
-//        if (fullDatesArray.includes(getLocalDateString(checkD))) {
-//            Alert.alert("Eroare", "Perioada selectată include zile în care hotelul este deja plin!");
-//            return;
-//        }
-//        checkD.setDate(checkD.getDate() + 1);
-//     }
-
-//     const priceTotalCalculated = calculateTotal();
-
-//     try {
-//       const response = await fetch('http://172.20.10.2:3000/api/dashboard/add-booking', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//           hotel_id: user.hotel_id,
-//           pet_name: petName,
-//           start_date: dates.start,
-//           end_date: dates.end,
-//           price_total: priceTotalCalculated
-//         })
-//       });
-
-//       const json = await response.json();
-
-//       if (response.ok && json.success) {
-//         Alert.alert("Succes", "Rezervarea a fost adăugată!");
-//         navigation.goBack();
-//       } else {
-//         Alert.alert("Eroare", json.message || "A apărut o problemă.");
-//       }
-//     } catch (error) {
-//       Alert.alert("Eroare", "Eroare de conexiune la server.");
-//     }
-//   };
-
-//   if (loading) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#2563EB" /></View>;
-
-//   return (
-//     <View style={styles.container}>
-//       <View style={styles.header}>
-//         <TouchableOpacity onPress={() => navigation.goBack()}>
-//           <Ionicons name="arrow-back" size={28} color="#fff" />
-//         </TouchableOpacity>
-//         <Text style={styles.headerTitle}>Adaugă Rezervare</Text>
-//         <View style={{ width: 28 }} />
-//       </View>
-
-//       <ScrollView style={styles.content}>
-//         <Text style={styles.label}>Nume Animăluț</Text>
-//         <TextInput
-//           style={styles.input}
-//           value={petName}
-//           onChangeText={setPetName}
-//           placeholder="Ex: Rex"
-//         />
-
-//         <Text style={styles.label}>Preț pe zi (RON)</Text>
-//         <TextInput
-//           style={styles.input}
-//           value={dailyPrice}
-//           onChangeText={setDailyPrice}
-//           placeholder="Ex: 100"
-//           keyboardType="numeric"
-//         />
-
-//         <Text style={styles.label}>Perioadă Cazare</Text>
-//         <View style={styles.calendarContainer}>
-//           <Calendar
-//             markingType={'period'}
-//             onDayPress={handleDayPress}
-//             markedDates={getCombinedMarkedDates()}
-//           />
-//         </View>
-
-//         <View style={styles.totalContainer}>
-//           <Text style={styles.totalLabel}>Total de plată:</Text>
-//           <Text style={styles.totalValue}>{calculateTotal()} RON</Text>
-//         </View>
-
-//         <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-//           <Text style={styles.saveBtnText}>Salvează Rezervarea</Text>
-//         </TouchableOpacity>
-//         <View style={{ height: 40 }} />
-//       </ScrollView>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: '#f8fafc' },
-//   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-//   header: {
-//     backgroundColor: '#2563EB', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20,
-//     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
-//   },
-//   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
-//   content: { padding: 20 },
-//   label: { fontSize: 16, fontWeight: '600', color: '#1e293b', marginBottom: 8, marginTop: 10 },
-//   input: {
-//     backgroundColor: '#fff', borderWidth: 1, borderColor: '#cbd5e1',
-//     borderRadius: 12, padding: 15, fontSize: 16, marginBottom: 10
-//   },
-//   calendarContainer: {
-//     backgroundColor: '#fff', borderRadius: 16, padding: 10, marginTop: 5, marginBottom: 20,
-//     elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4
-//   },
-//   totalContainer: {
-//     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-//     backgroundColor: '#eff6ff', padding: 18, borderRadius: 12, marginBottom: 20
-//   },
-//   totalLabel: { fontSize: 18, fontWeight: '600', color: '#1e293b' },
-//   totalValue: { fontSize: 22, fontWeight: 'bold', color: '#2563EB' },
-//   saveBtn: {
-//     backgroundColor: '#10b981', padding: 16, borderRadius: 12, alignItems: 'center'
-//   },
-//   saveBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
-// });
-
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { Calendar } from 'react-native-calendars';
@@ -281,6 +16,11 @@ export default function AdaugaRezervareScreen() {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
 
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
+  const [ownerEmail, setOwnerEmail] = useState('');
   const [petName, setPetName] = useState('');
   const [dailyPrice, setDailyPrice] = useState('');
   const [dates, setDates] = useState({ start: '', end: '' });
@@ -292,30 +32,30 @@ export default function AdaugaRezervareScreen() {
   const [acceptedAnimals, setAcceptedAnimals] = useState([]);
 
   useEffect(() => {
+    const fetchHotelData = async () => {
+      try {
+        const animalsRes = await fetch(`http://172.20.10.2:3000/api/dashboard/accepted-animals/${user?.hotel_id}`);
+        const animalsJson = await animalsRes.json();
+        if (animalsJson.success && animalsJson.animals.length > 0) {
+          setAcceptedAnimals(animalsJson.animals);
+          setSelectedAnimalId(animalsJson.animals[0].id);
+        }
+
+        const response = await fetch(`http://172.20.10.2:3000/api/dashboard/${user?.hotel_id}`);
+        const json = await response.json();
+        
+        if (json.success) {
+          calculateDisabledDates(json.bookingIntervals, json.stats.capacitateTotala);
+        }
+      } catch (error) {
+        Alert.alert("Eroare", "Nu am putut încărca datele calendarului.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchHotelData();
-  }, []);
-
-  const fetchHotelData = async () => {
-    try {
-      const animalsRes = await fetch(`http://172.20.10.2:3000/api/dashboard/accepted-animals/${user?.hotel_id}`);
-      const animalsJson = await animalsRes.json();
-      if (animalsJson.success && animalsJson.animals.length > 0) {
-        setAcceptedAnimals(animalsJson.animals);
-        setSelectedAnimalId(animalsJson.animals[0].id);
-      }
-
-      const response = await fetch(`http://172.20.10.2:3000/api/dashboard/${user?.hotel_id}`);
-      const json = await response.json();
-      
-      if (json.success) {
-        calculateDisabledDates(json.bookingIntervals, json.stats.capacitateTotala);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user?.hotel_id]);
 
   const calculateDisabledDates = (intervals, capacity) => {
     let map = {};
@@ -412,8 +152,8 @@ export default function AdaugaRezervareScreen() {
   const handleSave = async () => {
     const finalEndDate = dates.end ? dates.end : dates.start;
 
-    if (!selectedAnimalId || !petName || !dates.start || !finalEndDate || !dailyPrice) {
-      Alert.alert("Eroare", "Te rog completează toate câmpurile și alege specia.");
+    if (!selectedAnimalId || !petName || !ownerEmail || !dates.start || !finalEndDate || !dailyPrice) {
+      Alert.alert("Eroare", "Te rog completează toate câmpurile.");
       return;
     }
 
@@ -428,6 +168,8 @@ export default function AdaugaRezervareScreen() {
     }
 
     const priceTotalCalculated = calculateTotal();
+    const selectedAnimalObj = acceptedAnimals.find(a => a.id === selectedAnimalId);
+    const petType = selectedAnimalObj ? selectedAnimalObj.name : null;
 
     try {
       const response = await fetch('http://172.20.10.2:3000/api/dashboard/add-booking', {
@@ -436,7 +178,9 @@ export default function AdaugaRezervareScreen() {
         body: JSON.stringify({
           hotel_id: user.hotel_id,
           animal_id: selectedAnimalId,
+          pet_type: petType,
           pet_name: petName,
+          owner_email: ownerEmail, 
           start_date: dates.start,
           end_date: finalEndDate,
           price_total: priceTotalCalculated
@@ -490,6 +234,16 @@ export default function AdaugaRezervareScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        <Text style={styles.label}>Email Proprietar</Text>
+        <TextInput
+          style={styles.input}
+          value={ownerEmail}
+          onChangeText={setOwnerEmail}
+          placeholder="Ex: client@email.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
         <Text style={styles.label}>Nume Animăluț</Text>
         <TextInput
