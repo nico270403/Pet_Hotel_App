@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { AuthContext } from "../context/AuthContext";
+import PetBackground from "./PetBackground";
 
 LocaleConfig.locales['ro'] = {
   monthNames: ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
@@ -135,7 +136,7 @@ export default function ReservationScreen({ route, navigation }) {
         setCheckout(null);
         setSelectedHotel(null);
       } else {
-        Alert.alert("❌ Eroare", data.message || "Nu s-a putut crea rezervarea");
+        Alert.alert("❌ Eroare la efectuarea cererii de rezervare!", data.message || "Nu s-a putut crea rezervarea");
       }
     } catch (err) {
       console.error('❌ Eroare fetch:', err);
@@ -148,16 +149,17 @@ export default function ReservationScreen({ route, navigation }) {
   }
 
   return (
+    <PetBackground> 
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>📅 Rezervare Hotel</Text>
+      <Text style={styles.title}>Completează cerearea de rezervare</Text>
 
       <Text style={styles.label}>👤 Date personale</Text>
-      <TextInput style={styles.input} placeholder="Numele tău complet" value={ownerName} onChangeText={setOwnerName} />
-      <TextInput style={styles.input} placeholder="Email (pentru confirmare)*" value={ownerEmail} onChangeText={setOwnerEmail} keyboardType="email-address" autoCapitalize="none" />
+      <TextInput style={styles.input} placeholder="Numele tău complet" placeholderTextColor="#9ca3af" value={ownerName} onChangeText={setOwnerName} />
+      <TextInput style={styles.input} placeholder="Email (pentru confirmare)*" placeholderTextColor="#9ca3af" value={ownerEmail} onChangeText={setOwnerEmail} keyboardType="email-address" autoCapitalize="none" />
       
       <Text style={styles.label}>🐾 Date animal</Text>
-      <TextInput style={styles.input} placeholder="Nume animal (ex: Max)" value={petName} onChangeText={setPetName} />
-      <TextInput style={styles.input} placeholder="Tip animal (ex: câine, pisică)" value={petType} onChangeText={setPetType} />
+      <TextInput style={styles.input} placeholder="Nume animal (ex: Max)" placeholderTextColor="#9ca3af" value={petName} onChangeText={setPetName} />
+      <TextInput style={styles.input} placeholder="Tip animal (ex: câine, pisică)" placeholderTextColor="#9ca3af" value={petType} onChangeText={setPetType} />
 
       <Text style={styles.label}>🏨 Selectează Hotel</Text>
       <FlatList
@@ -241,11 +243,12 @@ export default function ReservationScreen({ route, navigation }) {
       </Modal>
 
     </ScrollView>
+    </PetBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: "#f3f6fb", minHeight: '100%' },
+  container: { padding: 20, minHeight: '100%' },
   title: { fontSize: 24, fontWeight: "700", marginBottom: 20, textAlign: 'center' },
   label: { fontSize: 16, fontWeight: "600", marginBottom: 8, marginTop: 16 },
   input: {
@@ -255,7 +258,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d1d5db",
     marginBottom: 12,
-    fontSize: 16
+    fontSize: 16,
+    color: "#000"
   },
   hotelButton: { 
     padding: 15,
@@ -301,7 +305,6 @@ const styles = StyleSheet.create({
   confirmBtnDisabled: { backgroundColor: "#94a3b8" },
   confirmBtnText: { color: "#fff", fontWeight: "700", fontSize: 17 },
 
-  /* --- STILURI NOI PENTRU CALENDAR --- */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

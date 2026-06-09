@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Platform, View, Text, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
+import { Platform, View, Text, ActivityIndicator, Alert, TouchableOpacity, SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -36,21 +36,21 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: true,
+        headerShown: false,
         headerTitleAlign: 'center',
-        headerRight: () => user ? (
-          <TouchableOpacity 
-            onPress={() => {
-              Alert.alert("Deconectare", "Ești sigur că vrei să ieși?", [
-                { text: "Anulează", style: "cancel" },
-                { text: "Da", onPress: logout, style: "destructive" }
-              ]);
-            }} 
-            style={{ marginRight: 15 }}
-          >
-            <Ionicons name="log-out-outline" size={26} color="#dc2626" />
-          </TouchableOpacity>
-        ) : null,
+        // headerRight: () => user ? (
+        //   <TouchableOpacity 
+        //     onPress={() => {
+        //       Alert.alert("Deconectare", "Ești sigur că vrei să ieși?", [
+        //         { text: "Anulează", style: "cancel" },
+        //         { text: "Da", onPress: logout, style: "destructive" }
+        //       ]);
+        //     }} 
+        //     style={{ marginRight: 15 }}
+        //   >
+        //     <Ionicons name="log-out-outline" size={26} color="#dc2626" />
+        //   </TouchableOpacity>
+        // ) : null,
         tabBarStyle: {
           height: 70,
           paddingBottom: Platform.OS === "ios" ? 20 : 10,
@@ -79,7 +79,7 @@ function MainTabs() {
       <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: "Acasă" }} />
       <Tab.Screen name="Pets" component={PetProfileScreen} options={{ title: "Animale" }} />
       <Tab.Screen name="ReservationTab" component={ReservationScreen} options={{ title: "Rezervă" }} />
-      <Tab.Screen name="MyBookings" component={BookingsScreen} options={{ title: "Istoric" }} />
+      <Tab.Screen name="MyBookings" component={BookingsScreen} options={{ title: "Istoric" , headerShown: false }} />
       <Tab.Screen name="AI" component={ChatScreen} options={{ title: "AI Chat" }} />
     </Tab.Navigator>
   );
@@ -190,12 +190,35 @@ export default function App() {
   if (appState === 'error') return <ErrorScreen error={error} />;
 
   return (
-    <AuthProvider>
-      <StripeProvider publishableKey="pk_test_51T2ERd12ViiqPzeDSePd8FBLZaGRNjRApKzQbRe4GNEQ20zedI3s927aJnLPZRvvBytSp2wRPL3LLyUWcXVVwICS00hyvcnFMy">
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </StripeProvider>
-    </AuthProvider>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content"  backgroundColor="#7899c2" translucent={false}/>
+      
+      <View style={styles.screenFrame}>
+        <AuthProvider>
+          <StripeProvider publishableKey="pk_test_51T2ERd12ViiqPzeDSePd8FBLZaGRNjRApKzQbRe4GNEQ20zedI3s927aJnLPZRvvBytSp2wRPL3LLyUWcXVVwICS00hyvcnFMy">
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </StripeProvider>
+        </AuthProvider>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#7899c2',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, 
+  },
+  screenFrame: {
+    flex: 1,
+    borderWidth: 2,          
+    borderColor: '#7899c2',  
+    borderRadius: 24,        
+    overflow: 'hidden',      
+    margin: 4,               
+    backgroundColor: '#ffffff' 
+  }
+});

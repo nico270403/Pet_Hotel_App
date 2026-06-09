@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import PetBackground from './PetBackground';
 
 export default function AuthScreen({ route, navigation }) {
   const { role } = route.params; 
@@ -41,13 +42,14 @@ export default function AuthScreen({ route, navigation }) {
   };
 
   return (
+    <PetBackground isPublic={true} imageOpacity={0.1}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={28} color="#1e293b" />
       </TouchableOpacity>
 
       <Text style={styles.headerTitle}>
-        {isHotel ? 'Parteneriat Hotel 🏨' : 'Bine ai venit! 🐾'}
+        {isHotel ? 'Parteneriat Hotel 🏨' : 'Bine ai venit! '}
       </Text>
       <Text style={styles.subtitle}>
         {isLogin ? 'Conectează-te la contul tău' : 'Creează un cont nou'}
@@ -98,11 +100,13 @@ export default function AuthScreen({ route, navigation }) {
         <Text style={styles.guestBtnText}>Continuă ca Oaspete</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
+    </PetBackground>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 25, backgroundColor: '#fff', justifyContent: 'center' },
+  container: { flex: 1, padding: 25, justifyContent: 'center' },
   backBtn: { position: 'absolute', top: 50, left: 20, zIndex: 10 },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1e293b', marginBottom: 5, marginTop: 40 },
   subtitle: { fontSize: 16, color: '#64748b', marginBottom: 30 },

@@ -9,10 +9,12 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  ImageBackground
 } from 'react-native';
 import { getHotels } from '../dbHelpers';
 import MapView, { Marker, Callout } from 'react-native-maps';
+import PetBackground from './PetBackground';
 
 const API_URLS = [
   'http://172.20.10.2:3000', // IP-ul meu de rețea
@@ -210,41 +212,37 @@ const HomeScreen = ({ navigation }) => {
     );
   }
 
+
+  const mapButton = (
+    <TouchableOpacity 
+      style={styles.mapToggleButton} 
+      onPress={() => setShowMap(!showMap)}
+    >
+      <Text style={styles.mapToggleText}>{showMap ? "📋 Listă" : "🗺️ Hartă"}</Text>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        {renderLoadingState()}
+      </SafeAreaView>
+    );
+  }
+
+
+  const homeQuote = (
+    <Text style={styles.quoteText}>
+      Găsește cazarea perfectă pentru animalul tău.
+    </Text>
+  );
+
+
   return (
+    <PetBackground  leftSlot={homeQuote} rightSlot={mapButton}>
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          
-          <View style={{ flex: 1, paddingRight: 15 }}>
-            <Text style={styles.headerTitle}>Pet Hotel</Text>
-            <Text style={styles.headerSubtitle} numberOfLines={2}>
-              Găsește cazarea perfectă pentru animalul tău
-            </Text>
-          </View>
-          
-          <View>
-            <TouchableOpacity 
-              style={styles.mapToggleButton} 
-              onPress={() => setShowMap(!showMap)}
-            >
-              <Text style={styles.mapToggleText}>{showMap ? "📋 Listă" : "🗺️ Hartă"}</Text>
-            </TouchableOpacity>
-          </View>
-
-        </View>
-        
-        <View style={styles.connectionStatus}>
-          <View style={[
-            styles.statusDot,
-            { backgroundColor: usingBackend ? '#10b981' : '#6b7280' }
-          ]} />
-          <Text style={styles.statusText}>
-            {usingBackend ? 'Connected to Server' : 'Using Local Data'}
-          </Text>
-        </View>
-      </View>
 
       {loading ? (
         renderLoadingState()
@@ -305,236 +303,72 @@ const HomeScreen = ({ navigation }) => {
         </Text>
       </TouchableOpacity>
     </SafeAreaView>
+    </PetBackground>
   );
 };
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
+  container: { flex: 1 },
+  backgroundImage: { opacity: 0.02, resizeMode: 'repeat' },
+  overlay: { flex: 1 }, 
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
+    borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
+    elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
-  },
-  connectionStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  statusText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingText: {
-    fontSize: 18,
-    color: '#666',
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  loadingSubtext: {
-    fontSize: 14,
-    color: '#999',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyTitle: {
+  quoteText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#666',
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-    marginBottom: 20,
+    color: '#075955',
+    fontWeight: '600',
+    fontStyle: 'italic',
     lineHeight: 22,
   },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 80, 
+  headerTitle: { fontSize: 28, fontWeight: '900', color: '#2563eb', marginBottom: 4 }, // Albastru principal
+  headerSubtitle: { fontSize: 15, color: '#475569', marginBottom: 8, fontWeight: '500' },
+  connectionStatus: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+  statusText: { fontSize: 12, color: '#64748b', fontWeight: 'bold' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  loadingText: { fontSize: 16, color: '#1e293b', marginTop: 16, fontWeight: '600' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  emptyCard: {
+    elevation: 8, shadowColor: '#000', shadowOpacity: 0.15, shadowOffset: { width: 0, height: 4 }, shadowRadius: 10
   },
+  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#0f172a', marginBottom: 8 },
+  emptyText: { fontSize: 15, color: '#475569', textAlign: 'center', marginBottom: 20, lineHeight: 22 },
+  listContainer: { padding: 20, paddingBottom: 100 }, 
   hotelCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-    overflow: 'hidden',
+    backgroundColor: '#ffffff', borderRadius: 20, marginBottom: 20,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 8,
+    elevation: 8, overflow: 'hidden'
   },
-  hotelImage: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#f1f5f9', 
-  },
-  hotelInfo: {
-    padding: 16,
-    position: 'relative',
-  },
-  hotelName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  hotelLocation: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
-  },
-  hotelDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  hotelFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ratingContainer: {
-    backgroundColor: '#ffeb3b',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  rating: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  price: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2563eb',
-  },
-  dataSourceIndicator: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  dataSourceText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  retryButton: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  hotelImage: { width: '100%', height: 200, backgroundColor: '#f1f5f9' },
+  hotelInfo: { padding: 20 },
+  hotelName: { fontSize: 22, fontWeight: 'bold', color: '#0f172a', marginBottom: 4 },
+  hotelLocation: { fontSize: 15, color: '#64748b', marginBottom: 10, fontWeight: '600' },
+  hotelDescription: { fontSize: 14, color: '#334155', lineHeight: 22, marginBottom: 16 },
+  hotelFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  ratingContainer: { backgroundColor: '#fef3c7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  rating: { fontSize: 14, fontWeight: 'bold', color: '#d97706' },
+  retryButton: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  retryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   refreshButton: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: '#2563eb',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    position: 'absolute', bottom: 20, left: 20, right: 20,
+    backgroundColor: '#1e3a8a', paddingVertical: 16, borderRadius: 16, alignItems: 'center',
+    elevation: 10, shadowColor: '#000', shadowOpacity: 0.3, shadowOffset: { width: 0, height: 5 }, shadowRadius: 8
   },
-  refreshButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
+  refreshButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   mapToggleButton: {
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 3,
+    backgroundColor: '#2563eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
+    flexDirection: 'row', alignItems: 'center', elevation: 4
   },
-  mapToggleText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  fullMap: {
-    width: '100%',
-    height: '100%',
-  },
-  calloutContainer: {
-    padding: 10,
-    minWidth: 150,
-    alignItems: 'center'
-  },
-  calloutTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  calloutPrice: {
-    color: '#2563eb',
-    fontWeight: '600',
-    fontSize: 13,
-    marginBottom: 5,
-  },
-  calloutLink: {
-    color: '#6b7280',
-    fontSize: 11,
-    fontStyle: 'italic'
-  }
+  mapToggleText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
+  fullMap: { width: '100%', height: '100%' },
+  calloutContainer: { padding: 10, minWidth: 150, alignItems: 'center' },
+  calloutTitle: { fontWeight: 'bold', fontSize: 14, marginBottom: 5 },
+  calloutPrice: { color: '#2563eb', fontWeight: 'bold', fontSize: 13, marginBottom: 5 },
+  calloutLink: { color: '#64748b', fontSize: 11, fontStyle: 'italic', marginTop: 4 }
 });
 
-export default HomeScreen;
+export default HomeScreen

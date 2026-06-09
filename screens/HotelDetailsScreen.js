@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,14 @@ import {
   FlatList,
   ActivityIndicator,
   Linking,
-  Dimensions 
+  Dimensions,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 import MapView, { Marker } from 'react-native-maps';
+
+// Importăm AuthContext pentru funcția de logout
+import { AuthContext } from '../context/AuthContext'; 
 
 const { width } = Dimensions.get("window"); 
 const API_BASE = "http://172.20.10.2:3000/api";
@@ -25,6 +28,33 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   const [images, setImages] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Extragem funcția de logout din context
+  const { logout } = useContext(AuthContext);
+
+  // Setăm butonul de Deconectare direct în bara nativă de sus
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: "Detalii Hotel",
+      headerTitleAlign: 'left', 
+      headerTitleContainerStyle: {
+        marginLeft: -15, 
+      },
+      headerRight: () => (
+        <TouchableOpacity 
+          onPress={() => {
+            Alert.alert("Deconectare", "Ești sigur că vrei să ieși?", [
+              { text: "Anulează", style: "cancel" },
+              { text: "Da", onPress: logout, style: "destructive" }
+            ]);
+          }}
+          style={styles.logoutButton} // <--- Folosim logoutButton aici
+        >
+          <Text style={styles.headerLogoutText}>Deconectare</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, logout]);
 
   useEffect(() => {
     const fetchHotelDetails = async () => {
@@ -86,21 +116,22 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   } : null;
 
   return (
-    <View style={{ flex: 1 }}> 
+    <View style={{ flex: 1, backgroundColor: "#fff" }}> 
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
         <StatusBar barStyle="dark-content" />
 
-        {/* Carousel imagini */}
-        <FlatList
-          data={images}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(_, idx) => idx.toString()}
-          renderItem={({ item }) => (
-            <Image source={{ uri: item.uri }} style={{ width: width, height: 250 }} resizeMode="cover" />
-          )}
-        />
+        <View style={styles.imageWrapper}>
+          <FlatList
+            data={images}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(_, idx) => idx.toString()}
+            renderItem={({ item }) => (
+              <Image source={{ uri: item.uri }} style={{ width: width, height: 280 }} resizeMode="contain" />
+            )}
+          />
+        </View>
 
         <View style={styles.content}>
           <View style={styles.headerRow}>
@@ -116,9 +147,8 @@ const HotelDetailsScreen = ({ route, navigation }) => {
           </View>
 
           <Text style={styles.sectionTitle}>Despre Locație</Text>
-          <Text style={styles.description}>{hotel.short_description || "Descriere indisponibilă."}</Text>
-
-          {/* SECȚIUNE ANIMALE ACCEPTATE */}
+          <Text style={styles.description}>{hotel.long_description || hotel.short_description || "Descriere indisponibilă."}</Text>
+          
           <Text style={styles.sectionTitle}>Animale Acceptate 🐾</Text>
           <View style={styles.animalsContainer}>
             {hotel.animals && hotel.animals.length > 0 ? (
@@ -132,7 +162,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             )}
           </View>
 
-          {/* HARTĂ STRICTĂ */}
           <Text style={styles.sectionTitle}>Locație pe Hartă 🗺️</Text>
           {hasCoordinates ? (
             <View style={styles.mapContainer}>
@@ -155,7 +184,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* Recenzii */}
           <Text style={styles.sectionTitle}>Părerea Clienților ({reviews.length})</Text>
           
           {reviews.length === 0 ? (
@@ -178,7 +206,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
             />
           )}
 
-          {/* Contact */}
           <Text style={styles.sectionTitle}>Contact</Text>
           <View style={styles.contactContainer}>
             {hotel.phone && (
@@ -209,7 +236,6 @@ const HotelDetailsScreen = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Buton Fix Jos */}
       <View style={styles.bottomBar}>
         <View>
           <Text style={styles.priceLabel}>Preț estimativ</Text>
@@ -229,8 +255,29 @@ const HotelDetailsScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  content: { padding: 20 },
   
+  // Înlocuit complet cu logoutButton
+  logoutButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    marginRight: 0, // Îl împinge lipit de marginea din dreapta
+  },
+  headerLogoutText: {
+    color: '#ef4444',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+
+  imageWrapper: { backgroundColor: '#f9fafb', width: '100%', alignItems: 'center' },
+  content: { padding: 20 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
   hotelName: { fontSize: 26, fontWeight: "bold", color: '#1f2937', flex: 1 },
   ratingBadge: { backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
