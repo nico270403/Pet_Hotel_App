@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useLayoutEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,6 +43,14 @@ export default function AddHotelScreen({ navigation }) {
   
   const [loading, setLoading] = useState(false);
 
+  useLayoutEffect(() => {
+    if (user?.isGuest && !showGuestForm) {
+      navigation.setOptions({ headerShown: false });
+    } else {
+      navigation.setOptions({ headerShown: true, title: 'Adaugă Locație Nouă' });
+    }
+  }, [navigation, user, showGuestForm]);
+
   const pickMainImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -79,7 +87,9 @@ export default function AddHotelScreen({ navigation }) {
         <View style={styles.promoList}>
           <Text style={styles.promoItem}> Atrage clienți noi lunar</Text>
           <Text style={styles.promoItem}> Gestionează rezervările direct din telefon</Text>
-          <Text style={styles.promoItem}> Acces asupra vizualizarea detaliilor importante: sume încasate, rezervări, rata de ocupare. </Text>
+          <Text style={styles.promoItem}> Acces asupra vizualizării detaliilor importante: </Text>
+          <Text> - sume încasate în orice interval de timp, </Text>
+          <Text> - vizualizarea gradului de ocupare în orice zi dorită. </Text>
         </View>
         <Text style={styles.promoSubtitle}>Înscrie-ți unitatea de cazare gratuit și începe să primești rezervări imediat.</Text>
         
