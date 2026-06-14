@@ -16,7 +16,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import MapView, { Marker } from 'react-native-maps';
 
-// Importăm AuthContext pentru funcția de logout
 import { AuthContext } from '../context/AuthContext'; 
 
 const { width } = Dimensions.get("window"); 
@@ -29,10 +28,8 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Extragem funcția de logout din context
   const { logout } = useContext(AuthContext);
 
-  // Setăm butonul de Deconectare direct în bara nativă de sus
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "Detalii Hotel",
@@ -48,7 +45,7 @@ const HotelDetailsScreen = ({ route, navigation }) => {
               { text: "Da", onPress: logout, style: "destructive" }
             ]);
           }}
-          style={styles.logoutButton} // <--- Folosim logoutButton aici
+          style={styles.logoutButton} 
         >
           <Text style={styles.headerLogoutText}>Deconectare</Text>
         </TouchableOpacity>
@@ -256,7 +253,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   
-  // Înlocuit complet cu logoutButton
   logoutButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     paddingHorizontal: 12,
@@ -268,7 +264,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    marginRight: 0, // Îl împinge lipit de marginea din dreapta
+    marginRight: 0, 
   },
   headerLogoutText: {
     color: '#ef4444',

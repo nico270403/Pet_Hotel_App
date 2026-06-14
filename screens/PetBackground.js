@@ -20,7 +20,6 @@ export default function PetBackground({ children, style, rightSlot, leftSlot, is
     >
       <View style={[styles.overlay, style]}>
         
-        {/* BARA DE SUS */}
         { !isPublic && (
         <View style={styles.topBar}>
           

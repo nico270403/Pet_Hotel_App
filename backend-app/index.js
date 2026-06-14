@@ -12,10 +12,12 @@ import paymentRoutes from "./routes/payment.js";
 import reviewRoute from "./routes/reviews.js";
 import dashboardRoutes from './routes/dashboard.js';
 
-
 const { Pool } = pkg;
 
 const app = express();
+
+
+app.use('/uploads', express.static('uploads'));
 
 app.use(cors({
   origin: true, 
@@ -42,7 +44,6 @@ app.use("/api/book", bookRoutes);
 app.use("/api/auth", authRoutes); 
 app.use("/api/payment", paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -75,7 +76,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/reviews", reviewRoute);
-
 
 app.get("/", (req, res) => {
   res.json({ 
@@ -145,9 +145,6 @@ app.get("/api/hotels/:id", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
-
-
-
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0'; // Ascult pe toate interfețele

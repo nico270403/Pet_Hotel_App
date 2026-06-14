@@ -17,7 +17,7 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import PetBackground from './PetBackground';
 
 const API_URLS = [
-  'http://172.20.10.2:3000', // IP-ul meu de rețea
+  'http://172.20.10.2:3000', 
   'http://localhost:3000',
   'http://127.0.0.1:3000',
 ];
@@ -146,37 +146,78 @@ const HomeScreen = ({ navigation }) => {
     await loadInitialData();
   };
 
+  
 
-  const renderHotelItem = ({ item }) => (
-  <TouchableOpacity 
-    style={styles.hotelCard}
-    onPress={() => navigation.navigate('HotelDetails', { hotelId: item.id })}
+//   const renderHotelItem = ({ item }) => (
+//   <TouchableOpacity 
+//     style={styles.hotelCard}
+//     onPress={() => navigation.navigate('HotelDetails', { hotelId: item.id })}
 
-  >
-    <Image 
-      source={{ 
-        uri: (item.image_url && item.image_url.trim() !== '') 
-          ? item.image_url 
-          : 'https://placedog.net/400/300?random=' + item.id 
-      }} 
-      style={styles.hotelImage}
-      resizeMode="contain"
-    />
-    <View style={styles.hotelInfo}>
-      <Text style={styles.hotelName}>{item.name || 'Unknown Hotel'}</Text>
-      <Text style={styles.hotelLocation}>{item.city || 'Location not specified'}</Text>
-      <Text style={styles.hotelDescription} numberOfLines={2}>
-        {item.short_description || 'No description available'}
-      </Text>
-      <View style={styles.hotelFooter}>
-        <View style={styles.ratingContainer}>
-          <Text style={styles.rating}>⭐ {item.rating || 'N/A'}</Text>
-        </View>
-      </View>
+//   >
+//     <Image 
+//       source={{ 
+//         uri: (item.image_url && item.image_url.trim() !== '') 
+//           ? item.image_url 
+//           : 'https://placedog.net/400/300?random=' + item.id 
+//       }} 
+//       style={styles.hotelImage}
+//       resizeMode="contain"
+//     />
+//     <View style={styles.hotelInfo}>
+//       <Text style={styles.hotelName}>{item.name || 'Unknown Hotel'}</Text>
+//       <Text style={styles.hotelLocation}>{item.city || 'Location not specified'}</Text>
+//       <Text style={styles.hotelDescription} numberOfLines={2}>
+//         {item.short_description || 'No description available'}
+//       </Text>
+//       <View style={styles.hotelFooter}>
+//         <View style={styles.ratingContainer}>
+//           <Text style={styles.rating}>⭐ {item.rating || 'N/A'}</Text>
+//         </View>
+//       </View>
       
-    </View>
-  </TouchableOpacity>
-);
+//     </View>
+//   </TouchableOpacity>
+// );
+
+const renderHotelItem = ({ item }) => {
+    // 1. Aici facem logica (deci avem nevoie de acolade)
+    let imagineFinala = 'https://placedog.net/400/300?random=' + item.id;
+
+    if (item.image_url && item.image_url.trim() !== '') {
+      if (item.image_url.startsWith('http')) {
+        imagineFinala = item.image_url;
+      } else {
+        const calePoza = item.image_url.startsWith('uploads/') ? item.image_url : `uploads/${item.image_url}`;
+        imagineFinala = `http://172.20.10.2:3000/${calePoza}`;
+      }
+    }
+
+    // 2. Aici afișăm vizualul (deci folosim return)
+    return (
+      <TouchableOpacity 
+        style={styles.hotelCard}
+        onPress={() => navigation.navigate('HotelDetails', { hotelId: item.id })}
+      >
+        <Image 
+          source={{ uri: imagineFinala }} 
+          style={styles.hotelImage}
+          resizeMode="contain"
+        />
+        <View style={styles.hotelInfo}>
+          <Text style={styles.hotelName}>{item.name || 'Unknown Hotel'}</Text>
+          <Text style={styles.hotelLocation}>{item.city || 'Location not specified'}</Text>
+          <Text style={styles.hotelDescription} numberOfLines={2}>
+            {item.short_description || 'No description available'}
+          </Text>
+          <View style={styles.hotelFooter}>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.rating}>⭐ {item.rating || 'N/A'}</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -247,7 +288,6 @@ const HomeScreen = ({ navigation }) => {
       {loading ? (
         renderLoadingState()
       ) : showMap ? (
-        /* VIZUALIZARE HARTĂ */
         <View style={{ flex: 1 }}>
           <MapView
             style={styles.fullMap}
@@ -280,7 +320,6 @@ const HomeScreen = ({ navigation }) => {
       ) : hotels.length === 0 ? (
         renderEmptyState()
       ) : (
-        /* VIZUALIZARE LISTĂ (codul existent) */
         <FlatList
           data={hotels}
           renderItem={renderHotelItem}
@@ -292,14 +331,13 @@ const HomeScreen = ({ navigation }) => {
         />
       )}
 
-      {/* BUTONUL DE REFRESH */}
       <TouchableOpacity 
         style={styles.refreshButton} 
         onPress={handleRefresh}
         disabled={refreshing}
       >
         <Text style={styles.refreshButtonText}>
-          {refreshing ? 'Refreshing...' : '🔄 Refresh'}
+          {refreshing ? 'Reîncărcare...' : 'Reîncărcare pagină'}
         </Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -354,13 +392,13 @@ const styles = StyleSheet.create({
   retryButton: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   retryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   refreshButton: {
-    position: 'absolute', bottom: 20, left: 20, right: 20,
-    backgroundColor: '#1e3a8a', paddingVertical: 16, borderRadius: 16, alignItems: 'center',
+    position: 'absolute', bottom: 30, left: 50, right: 50,
+    backgroundColor: '#1e4fd5', paddingVertical: 10, borderRadius: 20, alignItems: 'center',
     elevation: 10, shadowColor: '#000', shadowOpacity: 0.3, shadowOffset: { width: 0, height: 5 }, shadowRadius: 8
   },
   refreshButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   mapToggleButton: {
-    backgroundColor: '#2563eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
+    backgroundColor: '#1c58d7', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
     flexDirection: 'row', alignItems: 'center', elevation: 4
   },
   mapToggleText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },

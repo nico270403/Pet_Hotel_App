@@ -1,138 +1,14 @@
-// import React, { useState, useEffect } from 'react';
-// import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
-// import { Ionicons } from '@expo/vector-icons';
-
-// const AVAILABLE_ANIMALS = [
-//   'Câine', 'Pisică', 'Rozătoare', 'Păsări', 'Reptilă', 
-//   'Iepure', 'Pește', 'Porcusor de guineea', 'Arici', 
-//   'Veveriță', 'Hamster', 'Broască țestoasă', 'Reptile mici'
-// ];
-
-// export default function EditHotelScreen({ route, navigation }) {
-//   const { hotelId } = route.params;
-//   const [loading, setLoading] = useState(true);
-//   const [formData, setFormData] = useState({
-//     name: '', city: '', phone: '', capacity: '', address: '', 
-//     short_description: '', long_description: '', email: '', website: '', image_url: ''
-//   });
-//   const [selectedAnimals, setSelectedAnimals] = useState([]);
-
-//   useEffect(() => {
-//     fetch(`http://172.20.10.2:3000/api/dashboard/hotel-details/${hotelId}`)
-//       .then(res => res.json())
-//       .then(data => {
-//         setFormData({
-//           name: data.name || '', city: data.city || '', phone: data.phone || '',
-//           capacity: data.capacity ? data.capacity.toString() : '0', address: data.address || '',
-//           short_description: data.short_description || '', long_description: data.long_description || '',
-//           email: data.email || '', website: data.website || '', image_url: data.image_url || ''
-//         });
-//         setSelectedAnimals(data.animals || []); 
-//         setLoading(false);
-//       }).catch(() => {
-//         Alert.alert("Eroare", "Nu am putut încărca datele.");
-//         setLoading(false);
-//       });
-//   }, [hotelId]);
-
-//   const toggleAnimal = (animal) => {
-//     if (selectedAnimals.includes(animal)) {
-//       setSelectedAnimals(selectedAnimals.filter(a => a !== animal));
-//     } else {
-//       setSelectedAnimals([...selectedAnimals, animal]);
-//     }
-//   };
-
-//   const handleUpdate = async () => {
-//     setLoading(true);
-//     try {
-//       const response = await fetch(`http://172.20.10.2:3000/api/dashboard/update-hotel/${hotelId}`, {
-//         method: 'PUT',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ ...formData, animals: selectedAnimals }) 
-//       });
-//       if (response.ok) {
-//         Alert.alert("Succes", "Datele au fost salvate!");
-//         navigation.goBack(); 
-//       }
-//     } catch (e) { Alert.alert("Eroare", "Nu s-a putut salva."); } finally { setLoading(false); }
-//   };
-
-//   if (loading) return <ActivityIndicator style={{marginTop: 50}} size="large" color="#10b981" />;
-
-//   return (
-//     <ScrollView style={styles.container}>
-//       <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 20 }}>
-//         <Ionicons name="arrow-back" size={28} color="#1f2937" />
-//       </TouchableOpacity>
-
-//       <Text style={styles.title}>Editează Filtre și Detalii</Text>
-      
-//       {[
-//         { key: 'name', label: 'Nume Hotel' },
-//         { key: 'city', label: 'Oraș' },
-//         { key: 'phone', label: 'Telefon' },
-//         { key: 'email', label: 'Email Public' },
-//         { key: 'website', label: 'Website' },
-//         { key: 'address', label: 'Adresă' },
-//         { key: 'capacity', label: 'Capacitate (Locuri)', type: 'numeric' },
-//         { key: 'image_url', label: 'URL Imagine' }
-//       ].map(field => (
-//         <View key={field.key} style={{marginBottom: 15}}>
-//           <Text style={styles.label}>{field.label}</Text>
-//           <TextInput 
-//             style={styles.input} 
-//             value={formData[field.key]} 
-//             keyboardType={field.type || 'default'}
-//             onChangeText={t => setFormData({...formData, [field.key]: t})} 
-//           />
-//         </View>
-//       ))}
-
-//       <Text style={styles.label}>Descriere Scurtă</Text>
-//       <TextInput style={styles.input} multiline value={formData.short_description} onChangeText={t => setFormData({...formData, short_description: t})} />
-
-//       <Text style={styles.label}>Descriere Lungă (Pagina de profil)</Text>
-//       <TextInput style={[styles.input, {height: 100, textAlignVertical: 'top'}]} multiline value={formData.long_description} onChangeText={t => setFormData({...formData, long_description: t})} />
-
-//       <Text style={[styles.label, { marginTop: 15, marginBottom: 10 }]}>Animale Acceptate (Filtre)</Text>
-//       <View style={styles.animalsContainer}>
-//         {AVAILABLE_ANIMALS.map((animal) => {
-//           const isSelected = selectedAnimals.includes(animal);
-//           return (
-//             <TouchableOpacity key={animal} style={[styles.animalChip, isSelected && styles.animalChipSelected]} onPress={() => toggleAnimal(animal)}>
-//               <Text style={[styles.animalChipText, isSelected && styles.animalChipTextSelected]}>{animal}</Text>
-//             </TouchableOpacity>
-//           );
-//         })}
-//       </View>
-
-//       <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-//         <Text style={styles.buttonText}>Salvează Modificările</Text>
-//       </TouchableOpacity>
-//       <View style={{height: 50}} />
-//     </ScrollView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: { padding: 20, backgroundColor: '#fff', flex: 1 },
-//   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 25, color: '#1f2937' },
-//   input: { borderWidth: 1, borderColor: '#d1d5db', padding: 14, borderRadius: 10, backgroundColor: '#f9fafb', fontSize: 16 },
-//   label: { fontWeight: '600', marginBottom: 6, color: '#4b5563', marginLeft: 2 },
-//   button: { backgroundColor: '#10b981', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 30 },
-//   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-//   animalsContainer: { flexDirection: 'row', flexWrap: 'wrap' },
-//   animalChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#f9fafb', marginRight: 8, marginBottom: 8 },
-//   animalChipSelected: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-//   animalChipText: { fontSize: 14, color: '#4b5563', fontWeight: '600' },
-//   animalChipTextSelected: { color: '#ffffff' }
-// });
-
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+
+const AVAILABLE_ANIMALS = [
+  'Câine', 'Pisică', 'Rozătoare', 'Papagal', 'Reptilă', 
+  'Iepure', 'Pește', 'Porcusor de guineea', 'Arici', 
+  'Veveriță', 'Hamster', 'Broască țestoasă', 'Reptile mici'
+];
 
 export default function EditHotelScreen() {
   const navigation = useNavigation();
@@ -140,16 +16,26 @@ export default function EditHotelScreen() {
   const { hotelId } = route.params;
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [name, setName] = useState('');
-  const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
+  
+  const [county, setCounty] = useState('');
+  const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
+  
   const [capacity, setCapacity] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [price, setPrice] = useState(''); 
+  const [selectedAnimals, setSelectedAnimals] = useState([]);
   const [shortDesc, setShortDesc] = useState('');
   const [longDesc, setLongDesc] = useState('');
+
+  
+  const [mainImage, setMainImage] = useState(null);
+  const [gallery, setGallery] = useState([]);
 
   useEffect(() => {
     fetchHotelData();
@@ -158,154 +44,295 @@ export default function EditHotelScreen() {
   const fetchHotelData = async () => {
     try {
       const response = await fetch(`http://172.20.10.2:3000/api/dashboard/hotel-details/${hotelId}`);
-      if (!response.ok) {
-        throw new Error('Eroare rețea');
-      }
+      if (!response.ok) throw new Error('Eroare rețea');
       const data = await response.json();
       
       if (data) {
         setName(data.name || '');
-        setCity(data.city || '');
         setPhone(data.phone || '');
         setEmail(data.email || '');
         setWebsite(data.website || '');
+        
+        setCounty(data.county || '');
+        setCity(data.city || '');
         setAddress(data.address || '');
+        
         setCapacity(data.capacity ? data.capacity.toString() : '');
-        setImageUrl(data.image_url || '');
+        setPrice(data.price_per_day ? data.price_per_day.toString() : ''); 
         setShortDesc(data.short_description || '');
         setLongDesc(data.long_description || '');
+        
+        setSelectedAnimals(data.animals || []);
+        
+        if (data.image_url) {
+          const imageUrl = data.image_url.startsWith('http') 
+            ? data.image_url 
+            : `http://172.20.10.2:3000/${data.image_url.startsWith('uploads/') ? data.image_url : 'uploads/'+data.image_url}`;
+          setMainImage(imageUrl);
+        }
       } else {
         Alert.alert("Eroare", "Datele nu au fost găsite.");
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert("Eroare", "Nu am putut încărca datele. Verifică conexiunea la server.");
+      Alert.alert("Eroare", "Nu am putut încărca datele. Verifică conexiunea.");
     } finally {
       setLoading(false);
     }
   };
 
+  const toggleAnimal = (animal) => {
+    if (selectedAnimals.includes(animal)) {
+      setSelectedAnimals(selectedAnimals.filter(a => a !== animal));
+    } else {
+      setSelectedAnimals([...selectedAnimals, animal]);
+    }
+  };
+
+  const pickMainImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setMainImage(result.assets[0].uri);
+    }
+  };
+
+  const pickGalleryImages = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      const newImages = result.assets.map(asset => asset.uri);
+      setGallery([...gallery, ...newImages]);
+    }
+  };
+
+  const removeGalleryImage = (indexToRemove) => {
+    setGallery(gallery.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleUpdate = async () => {
+    if (!name || !capacity || !price || !city || !county || selectedAnimals.length === 0) {
+      Alert.alert("Eroare", "Te rog completează datele obligatorii (Nume, Capacitate, Preț, Județ, Oraș, Animale)!");
+      return;
+    }
+
+    setSaving(true);
     try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('phone', phone);
+      formData.append('email', email);
+      formData.append('website', website);
+      formData.append('county', county);
+      formData.append('city', city);
+      formData.append('address', address);
+      formData.append('capacity', capacity);
+      formData.append('price', price); 
+      formData.append('short_description', shortDesc);
+      formData.append('long_description', longDesc);
+      formData.append('animals', JSON.stringify(selectedAnimals));
+
+      if (mainImage && !mainImage.startsWith('http')) {
+        const filename = mainImage.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image`;
+        formData.append('mainImage', { uri: mainImage, name: filename, type });
+      }
+
+      gallery.forEach((imgUri) => {
+        if (!imgUri.startsWith('http')) {
+          const filename = imgUri.split('/').pop();
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image`;
+          formData.append('gallery', { uri: imgUri, name: filename, type });
+        }
+      });
+
       const response = await fetch(`http://172.20.10.2:3000/api/dashboard/update-hotel/${hotelId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name, 
-          city, 
-          phone, 
-          email, 
-          website, 
-          address, 
-          capacity, 
-          image_url: imageUrl, 
-          short_description: shortDesc, 
-          long_description: longDesc
-        })
+        body: formData 
       });
       
       const result = await response.json();
       if (response.ok && result.success) {
-        Alert.alert("Succes", "Datele au fost actualizate!");
+        Alert.alert("Succes", "Datele au fost actualizate cu succes!");
         navigation.goBack();
       } else {
         Alert.alert("Eroare", result.message || "A apărut o problemă la salvare.");
       }
     } catch (error) {
-      console.error(error);
       Alert.alert("Eroare", "Eroare de conexiune la server.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1f2937" />
-      </View>
-    );
-  }
+  if (loading) return <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#2563EB" /></View>;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={28} color="#1f2937" />
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+      
+      <View style={styles.topHeader}>
+        <View>
+          <Text style={styles.mainTitle}>Editează Locația</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={20} color="#1f2937" style={{marginRight: 4}}/>
+          <Text style={styles.backText}>Înapoi</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editează Filtre și Detalii</Text>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
         
-        <Text style={styles.label}>Nume Hotel</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} />
+        {/* INFORMAȚII GENERALE */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>1. Informații Generale</Text>
+          
+          <Text style={styles.label}>Numele unității de cazare *</Text>
+          <TextInput style={styles.input} value={name} onChangeText={setName} />
 
-        <Text style={styles.label}>Oraș</Text>
-        <TextInput style={styles.input} value={city} onChangeText={setCity} />
+          <Text style={styles.label}>Telefon de contact</Text>
+          <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
 
-        <Text style={styles.label}>Telefon</Text>
-        <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <Text style={styles.label}>Adresa de email a managerului</Text>
+          <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+          <Text style={styles.label}>Website (Opțional)</Text>
+          <TextInput style={styles.input} value={website} onChangeText={setWebsite} autoCapitalize="none" />
+        </View>
 
-        <Text style={styles.label}>Website</Text>
-        <TextInput style={styles.input} value={website} onChangeText={setWebsite} autoCapitalize="none" />
+        {/* LOCAȚIE */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>2. Locație</Text>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            <View style={{flex: 1, marginRight: 10}}>
+              <Text style={styles.label}>Județ *</Text>
+              <TextInput style={styles.input} value={county} onChangeText={setCounty} />
+            </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.label}>Localitate *</Text>
+              <TextInput style={styles.input} value={city} onChangeText={setCity} />
+            </View>
+          </View>
+          
+          <Text style={styles.label}>Adresă </Text>
+          <TextInput style={styles.input} value={address} onChangeText={setAddress} placeholder="Ex: Str. Florilor Nr. 10" />
+        </View>
 
-        <Text style={styles.label}>Adresă</Text>
-        <TextInput style={styles.input} value={address} onChangeText={setAddress} />
+        {/* FOTOGRAFII */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>3. Fotografii</Text>
+          <Text style={styles.label}>Imagine Principală (Profil)</Text>
+          <TouchableOpacity style={styles.imageUploader} onPress={pickMainImage}>
+            {mainImage ? (
+              <Image source={{ uri: mainImage }} style={styles.previewMainImage} />
+            ) : (
+              <>
+                <Ionicons name="camera-outline" size={30} color="#6b7280" />
+                <Text style={styles.imageUploaderText}>Apasă pentru a schimba poza</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
-        <Text style={styles.label}>Capacitate (Locuri)</Text>
-        <TextInput style={styles.input} value={capacity} onChangeText={setCapacity} keyboardType="numeric" />
+          <Text style={styles.label}>Galerie (Mai multe poze)</Text>
+          <TouchableOpacity style={styles.galleryUploaderBtn} onPress={pickGalleryImages}>
+            <Ionicons name="images-outline" size={20} color="#2563eb" />
+            <Text style={styles.galleryUploaderText}>Adaugă poze în galerie</Text>
+          </TouchableOpacity>
 
-        <Text style={styles.label}>URL Imagine</Text>
-        <TextInput style={styles.input} value={imageUrl} onChangeText={setImageUrl} autoCapitalize="none" />
+          {gallery.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.galleryScroll}>
+              {gallery.map((img, index) => (
+                <View key={index} style={styles.galleryImageContainer}>
+                  <Image source={{ uri: img }} style={styles.galleryImage} />
+                  <TouchableOpacity style={styles.deleteImageBtn} onPress={() => removeGalleryImage(index)}>
+                    <Ionicons name="close-circle" size={24} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
 
-        <Text style={styles.label}>Descriere Scurtă</Text>
-        <TextInput style={[styles.input, styles.textAreaShort]} value={shortDesc} onChangeText={setShortDesc} multiline />
+        {/* DETALII CAZARE */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>4. Detalii Cazare</Text>
+          
+          {/* <-- Rând nou cu Capacitate și Preț --> */}
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            <View style={{flex: 1, marginRight: 10}}>
+              <Text style={styles.label}>Capacitate totală (Locuri) *</Text>
+              <TextInput style={styles.input} keyboardType="numeric" value={capacity} onChangeText={setCapacity} />
+            </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.label}>Preț per zi (RON) *</Text>
+              <TextInput style={styles.input} keyboardType="numeric" value={price} onChangeText={setPrice} />
+            </View>
+          </View>
 
-        <Text style={styles.label}>Descriere Lungă</Text>
-        <TextInput style={[styles.input, styles.textAreaLong]} value={longDesc} onChangeText={setLongDesc} multiline />
+          <Text style={[styles.label, { marginTop: 10 }]}>Animale Acceptate: *</Text>
+          <View style={styles.animalsContainer}>
+            {AVAILABLE_ANIMALS.map((animal) => {
+              const isSelected = selectedAnimals.includes(animal);
+              return (
+                <TouchableOpacity key={animal} style={[styles.animalChip, isSelected && styles.animalChipSelected]} onPress={() => toggleAnimal(animal)}>
+                  <Text style={[styles.animalChipText, isSelected && styles.animalChipTextSelected]}>{animal} {isSelected ? '✓' : ''}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleUpdate}>
-          <Text style={styles.saveBtnText}>Salvează Modificările</Text>
+          <Text style={[styles.label, { marginTop: 15 }]}>Scurtă descriere (Pentru listă)</Text>
+          <TextInput style={[styles.input, styles.textAreaShort]} value={shortDesc} onChangeText={setShortDesc} multiline placeholder="Apare în ecranul principal..." />
+
+          <Text style={styles.label}>Descriere Lungă (Pagina hotelului)</Text>
+          <TextInput style={[styles.input, styles.textAreaLong]} value={longDesc} onChangeText={setLongDesc} multiline placeholder="Toate detaliile importante..." />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleUpdate} disabled={saving}>
+          {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Salvează Modificările</Text>}
         </TouchableOpacity>
-        
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#e2e8f0' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e2e8f0' },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    paddingTop: 60, 
-    paddingBottom: 20 
-  },
-  backBtn: { paddingRight: 10 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  content: { paddingHorizontal: 20 },
-  label: { fontSize: 15, fontWeight: '600', color: '#475569', marginBottom: 8, marginTop: 15 },
-  input: {
-    backgroundColor: '#cbd5e1', 
-    borderRadius: 12, 
-    padding: 15, 
-    fontSize: 16, 
-    color: '#1e293b',
-    borderWidth: 1,
-    borderColor: '#94a3b8'
-  },
+  topHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 50, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+  mainTitle: { fontSize: 22, fontWeight: 'bold', color: '#1f2937' },
+  backButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#d1d5db' },
+  backText: { color: '#1f2937', fontWeight: 'bold', fontSize: 13 },
+  container: { flex: 1, padding: 15 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6' },
+  card: { backgroundColor: '#fff', padding: 20, borderRadius: 16, marginBottom: 15, elevation: 3 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#111827', marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', paddingBottom: 8 },
+  label: { fontSize: 14, fontWeight: '600', color: '#4b5563', marginBottom: 6, marginLeft: 2 },
+  input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 15, backgroundColor: '#f9fafb', color: '#1f2937' },
   textAreaShort: { height: 80, textAlignVertical: 'top' },
   textAreaLong: { height: 120, textAlignVertical: 'top' },
-  saveBtn: {
-    backgroundColor: '#2563EB', 
-    padding: 16, 
-    borderRadius: 12, 
-    alignItems: 'center', 
-    marginTop: 30
-  },
-  saveBtnText: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' }
+  
+  imageUploader: { height: 150, borderWidth: 1, borderColor: '#d1d5db', borderStyle: 'dashed', borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb', marginBottom: 20, overflow: 'hidden' },
+  imageUploaderText: { color: '#6b7280', marginTop: 10, fontSize: 14 },
+  previewMainImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  galleryUploaderBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, backgroundColor: '#eff6ff', borderRadius: 12, borderWidth: 1, borderColor: '#bfdbfe', marginBottom: 10 },
+  galleryUploaderText: { marginLeft: 8, color: '#2563eb', fontWeight: 'bold' },
+  galleryScroll: { flexDirection: 'row', marginBottom: 10 },
+  galleryImageContainer: { marginRight: 10, position: 'relative' },
+  galleryImage: { width: 80, height: 80, borderRadius: 10 },
+  deleteImageBtn: { position: 'absolute', top: -5, right: -5, backgroundColor: '#fff', borderRadius: 12 },
+  
+  animalsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
+  animalChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#f9fafb', marginRight: 8, marginBottom: 8 },
+  animalChipSelected: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
+  animalChipText: { fontSize: 14, color: '#4b5563', fontWeight: '600' },
+  animalChipTextSelected: { color: '#ffffff' },
+  
+  button: { backgroundColor: '#2563EB', padding: 16, borderRadius: 12, alignItems: 'center', marginVertical: 10, elevation: 5 },
+  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 18 }
 });

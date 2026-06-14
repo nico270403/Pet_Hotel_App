@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { Calendar } from 'react-native-calendars';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 const getLocalDateString = (d) => {
@@ -14,7 +14,11 @@ const getLocalDateString = (d) => {
 
 export default function AdaugaRezervareScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { user } = useContext(AuthContext);
+
+  // Preluăm ID-ul din navigație, sau primul hotel al managerului ca rezervă
+  const currentHotelId = route.params?.hotelId || (user?.hotel_ids && user.hotel_ids.length > 0 ? user.hotel_ids[0] : user?.hotel_id);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -33,15 +37,20 @@ export default function AdaugaRezervareScreen() {
 
   useEffect(() => {
     const fetchHotelData = async () => {
+      if (!currentHotelId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const animalsRes = await fetch(`http://172.20.10.2:3000/api/dashboard/accepted-animals/${user?.hotel_id}`);
+        const animalsRes = await fetch(`http://172.20.10.2:3000/api/dashboard/accepted-animals/${currentHotelId}`);
         const animalsJson = await animalsRes.json();
         if (animalsJson.success && animalsJson.animals.length > 0) {
           setAcceptedAnimals(animalsJson.animals);
           setSelectedAnimalId(animalsJson.animals[0].id);
         }
 
-        const response = await fetch(`http://172.20.10.2:3000/api/dashboard/${user?.hotel_id}`);
+        const response = await fetch(`http://172.20.10.2:3000/api/dashboard/${currentHotelId}`);
         const json = await response.json();
         
         if (json.success) {
@@ -55,7 +64,7 @@ export default function AdaugaRezervareScreen() {
     };
 
     fetchHotelData();
-  }, [user?.hotel_id]);
+  }, [currentHotelId]);
 
   const calculateDisabledDates = (intervals, capacity) => {
     let map = {};
@@ -77,9 +86,11 @@ export default function AdaugaRezervareScreen() {
         let count = 0;
         
         intervals.forEach(b => {
-          const s = getLocalDateString(new Date(b.start_date));
-          const e = getLocalDateString(new Date(b.end_date));
-          if(dateStr >= s && dateStr <= e) count++;
+          if (b.status !== 'anulat' && b.status !== 'rejected') {
+            const s = getLocalDateString(new Date(b.start_date));
+            const e = getLocalDateString(new Date(b.end_date));
+            if(dateStr >= s && dateStr <= e) count++;
+          }
         });
 
         if(count >= capacity) {
@@ -153,7 +164,7 @@ export default function AdaugaRezervareScreen() {
     const finalEndDate = dates.end ? dates.end : dates.start;
 
     if (!selectedAnimalId || !petName || !ownerEmail || !dates.start || !finalEndDate || !dailyPrice) {
-      Alert.alert("Eroare", "Te rog completează toate câmpurile.");
+      Alert.alert("Eroare", "Te rog completează toate câmpurile obligatorii.");
       return;
     }
 
@@ -176,7 +187,7 @@ export default function AdaugaRezervareScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          hotel_id: user.hotel_id,
+          hotel_id: currentHotelId,
           animal_id: selectedAnimalId,
           pet_type: petType,
           pet_name: petName,
@@ -190,7 +201,7 @@ export default function AdaugaRezervareScreen() {
       const json = await response.json();
 
       if (response.ok && json.success) {
-        Alert.alert("Succes", "Rezervarea a fost adăugată cu status aprobat!");
+        Alert.alert("Succes", "Rezervarea a fost adăugată cu succes!");
         navigation.goBack();
       } else {
         Alert.alert("Eroare", json.message || "A apărut o problemă.");
@@ -214,7 +225,7 @@ export default function AdaugaRezervareScreen() {
 
       <ScrollView style={styles.content}>
         
-        <Text style={styles.label}>Specie</Text>
+        <Text style={styles.label}>Tip animal *</Text>
         <View style={styles.animalSelectionContainer}>
           {acceptedAnimals.map((animal) => (
             <TouchableOpacity 
@@ -235,7 +246,7 @@ export default function AdaugaRezervareScreen() {
           ))}
         </View>
 
-        <Text style={styles.label}>Email Proprietar</Text>
+        <Text style={styles.label}>Email proprietar *</Text>
         <TextInput
           style={styles.input}
           value={ownerEmail}
@@ -245,7 +256,7 @@ export default function AdaugaRezervareScreen() {
           autoCapitalize="none"
         />
 
-        <Text style={styles.label}>Nume Animăluț</Text>
+        <Text style={styles.label}>Nume animal *</Text>
         <TextInput
           style={styles.input}
           value={petName}
@@ -253,7 +264,7 @@ export default function AdaugaRezervareScreen() {
           placeholder="Ex: Rex"
         />
 
-        <Text style={styles.label}>Preț pe zi (RON)</Text>
+        <Text style={styles.label}>Preț pe zi (RON) *</Text>
         <TextInput
           style={styles.input}
           value={dailyPrice}
@@ -262,7 +273,7 @@ export default function AdaugaRezervareScreen() {
           keyboardType="numeric"
         />
 
-        <Text style={styles.label}>Perioadă Cazare</Text>
+        <Text style={styles.label}>Perioadă Cazare *</Text>
         <View style={styles.calendarContainer}>
           <Calendar
             markingType={'period'}

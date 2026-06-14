@@ -213,7 +213,6 @@ export default function ReservationScreen({ route, navigation }) {
         <Text style={styles.confirmBtnText}>📨 Trimite cerere de rezervare</Text>
       </TouchableOpacity>
 
-      {/* AICI ESTE MODALUL CU CALENDARUL PE CARE ÎL UITASEI */}
       <Modal visible={showCalendar} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.calendarPopup}>

@@ -123,30 +123,29 @@ function RootNavigator() {
         </>
       ) : user.role === 'manager' ? (
         <>
-          {user.hotel_id ? (
+          {((user.hotels && user.hotels.length > 0) || (user.hotel_ids && user.hotel_ids.length > 0)) && (
             <Stack.Screen 
               name="HotelDashboard" 
               component={HotelDashboardScreen} 
               options={{ headerShown: false }} 
             />
-          ) : (
+          )}
             <Stack.Screen 
               name="AddHotel" 
               component={AddHotelScreen} 
+              options={{ title: 'Adaugă Locație Nouă' }} 
+            />
+            <Stack.Screen 
+              name="EditHotel" 
+              component={EditHotelScreen} 
               options={{ headerShown: false }} 
             />
-          )}
-          <Stack.Screen 
-            name="EditHotel" 
-            component={EditHotelScreen} 
-            options={{ headerShown: false }} 
-          />
 
-          <Stack.Screen 
-            name="AdaugaRezervare" 
-            component={AdaugaRezervareScreen} 
-            options={{ title: 'Adaugă Rezervare' }} 
-          />
+            <Stack.Screen 
+              name="AdaugaRezervare" 
+              component={AdaugaRezervareScreen} 
+              options={{ title: 'Adaugă Rezervare' }} 
+            />
         </>
       ) : (
         <>

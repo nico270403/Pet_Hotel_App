@@ -10,8 +10,9 @@ export default function ChatScreen({ navigation, route }) {
   
   const { user } = useContext(AuthContext);
   
-  const [savedPetName] = useState(route.params?.petName || "");
-  const [savedPetType] = useState(route.params?.petType || "animal");
+  const [savedPetName] = useState(route.params?.petName);
+  const [savedPetType] = useState(route.params?.petType);
+  const [detectedPetType, setDetectedPetType] = useState("");
 
   const [messages, setMessages] = useState([
     { 
@@ -56,7 +57,7 @@ export default function ChatScreen({ navigation, route }) {
       }]);
       
       setPendingPetSearch(prompt);
-      setQuickReplies(["În București", "În Cluj", "În Timișoara", "În Brașov"]);
+      setQuickReplies(["În București", "În Cluj", "În Timișoara"]);
       navigation.setParams({ initialPrompt: null }); 
     }
   }, [route?.params?.initialPrompt]);
@@ -65,7 +66,6 @@ export default function ChatScreen({ navigation, route }) {
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePhone = (phone) => /^[0-9]{10}$/.test(phone.replace(/\D/g, ''));
   
-  // NOU: Funcție inteligentă de validare a datei care returnează motivul erorii
   const checkDateValidity = (dateStr, minDateStr = null) => {
     if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return { valid: false, reason: "format" };
     
@@ -118,7 +118,6 @@ export default function ChatScreen({ navigation, route }) {
       return;
     }
 
-    // AICI a fost scoasă scurtătura care bloca afișarea hotelurilor
     let apiPrompt = textToSend;
     if (pendingPetSearch) {
       apiPrompt = `${pendingPetSearch} Te rog să-mi recomanzi hoteluri pentru el în zona/orașul ${textToSend}.`;
@@ -134,6 +133,9 @@ export default function ChatScreen({ navigation, route }) {
       
       const response = await api.sendMessage(apiPrompt, sessionId, hotelsShown, currentHistory);
       
+      if (response.context && response.context.animal) {
+        setDetectedPetType(response.context.animal);
+      }
       if (response.hotels && response.hotels.length > 0) {
         const hotelsWithIds = response.hotels.map(h => ({ 
           ...h, 
@@ -177,8 +179,8 @@ export default function ChatScreen({ navigation, route }) {
     } else {
       setReservationStep('petName');
       const introMsg = hotel 
-        ? `🏨 Minunat! Ai ales **"${hotel.name}"**.\n\n**Pasul 1:** Cum îl cheamă pe micuțul tău prieten necuvântător? 🐾`
-        : "Să începem rezervarea! 🎉\n\n**Pasul 1:** Cum îl cheamă pe animăluțul tău? 🐾";
+        ? `🏨 Minunat! Ai ales ${hotel.name}.\n\nPasul 1: Cum îl cheamă pe prietenul tău necuvântător? 🐾`
+        : "Să începem rezervarea! 🎉\n\nPasul 1: Cum îl cheamă pe animăluțul tău? 🐾";
       askQuestion(introMsg);
     }
   };
@@ -194,8 +196,32 @@ export default function ChatScreen({ navigation, route }) {
     switch (reservationStep) {
       case 'petName':
         setReservationData(p => ({ ...p, petName: trimmedInput }));
+        const knownType = (savedPetType && savedPetType !== "animal") ? savedPetType : detectedPetType;
+        if (knownType) {
+          setReservationData(p => ({ ...p, petType: knownType }));
+
+          if (user && user.name) {
+              setReservationData(p => ({ 
+                  ...p, 
+                  ownerName: user.name, 
+                  ownerEmail: user.email || "" 
+              }));
+
+              if (user.email) {
+                  setReservationStep('ownerPhone');
+                  askQuestion(`Pasul 5: Știu deja că ${trimmedInput} este un ${knownType} 🐾.\nAm preluat automat datele contului tău (${user.name}, ${user.email}) ✅. Așa că am bifat pașii 2, 3 și 4 din procesul cererii de rezervare.\n\nLa ce număr de telefon te putem găsi la nevoie? 📱`);
+              } else {
+                  setReservationStep('ownerEmail');
+                  askQuestion(`Pasul 4: Știu deja că ${trimmedInput} este un ${knownType} 🐾 și ți-am salvat numele (${user.name}) ✅.\n\nPe ce adresă de email vrei să îți trimitem statusul rezervării? 📧`);
+              }
+          } else {
+              setReservationStep('ownerName');
+              askQuestion(`Pasul 3: Perfect, deci ${trimmedInput} este un ${knownType}! 🐾 Acum despre tine. Care este numele tău? 👤`);
+          }
+        } else {
         setReservationStep('petType');
-        askQuestion(`**Pasul 2:** Ce fel de animăluț este **${trimmedInput}**? (ex: câine, pisică, iepuraș) 🐶🐱`);
+        askQuestion(`Pasul 2: Ce tip de animal este ${trimmedInput}? (ex: câine, pisică, iepure) 🐶🐱`);
+        }
         break;
       case 'petType':
         setReservationData(p => ({ ...p, petType: trimmedInput }));
@@ -208,53 +234,53 @@ export default function ChatScreen({ navigation, route }) {
             if (user.email) {
                  setReservationData(p => ({ ...p, ownerEmail: user.email }));
                  setReservationStep('ownerPhone');
-                 askQuestion(`**Pasul 5:** Am completat automat detaliile tale (${user.name}, ${user.email}) ✅.\n\nLa ce număr de telefon te putem găsi la nevoie? 📱`);
+                 askQuestion(`Pasul 5: Am completat automat detaliile tale corespondente pașilor 3 și 4 fiindcă este deja conectat(${user.name}, ${user.email}) ✅.\n\nLa ce număr de telefon te putem găsi la nevoie? 📱`);
             } else {
-                 askQuestion(`**Pasul 4:** Am salvat numele (${user.name}) ✅.\n\nPe ce adresă de email vrei să îți trimitem confirmarea rezervării? 📧`);
+                 askQuestion(`Pasul 4: Am salvat numele (${user.name}) ✅.\n\nPe ce adresă de e-mail vrei să îți trimitem statusul rezervării? 📧`);
             }
         } else {
-            askQuestion("**Pasul 3:** Acum despre tine! Care este numele tău complet? 👤");
+            askQuestion("Pasul 3: Acum despre tine! Care este numele tău ? 👤");
         }
         break;
       case 'ownerName':
         setReservationData(p => ({ ...p, ownerName: trimmedInput }));
         setReservationStep('ownerEmail');
-        askQuestion("**Pasul 4:** Perfect! Pe ce adresă de email îți vom trimite biletul de confirmare? 📧");
+        askQuestion("Pasul 4: Perfect! Pe ce adresă de email îți vom trimite statusul de confirmare? 📧");
         break;
       case 'ownerEmail':
         if (!validateEmail(trimmedInput)) return askQuestion("Ups! 🙈 Email-ul nu pare a fi corect. Te rog scrie-l din nou, cu atenție!");
         setReservationData(p => ({ ...p, ownerEmail: trimmedInput }));
         setReservationStep('ownerPhone');
-        askQuestion("**Pasul 5:** La ce număr de telefon te putem contacta în timpul șederii? 📱");
+        askQuestion("Pasul 5: La ce număr de telefon te putem contacta în caz de ceva? 📱");
         break;
       case 'ownerPhone':
         if (!validatePhone(trimmedInput)) return askQuestion("Ups! 📱 Numărul trebuie să conțină 10 cifre valide. Mai încearcă o dată!");
         setReservationData(p => ({ ...p, ownerPhone: trimmedInput }));
         setReservationStep('checkIn');
-        askQuestion("**Pasul 6:** În ce zi dorești să înceapă vacanța animăluțului tău (Check-in)? 📅\n(Scrie data sub forma AAAA-LL-ZZ, ex: 2026-07-15)");
+        askQuestion("Pasul 6: În ce zi dorești să înceapă vacanța animăluțului tău (Check-in)? 📅\n(Scrie data sub forma AAAA-LL-ZZ, ex: 2026-07-15)");
         break;
       case 'checkIn':
         const statusIn = checkDateValidity(trimmedInput);
         if (!statusIn.valid) {
-            if (statusIn.reason === "past") return askQuestion("Ups! 🙈 Data aceasta a trecut deja (avem nevoie de o mașină a timpului pentru asta 🕰️). Te rog alege o dată începând de azi încolo!");
+            if (statusIn.reason === "past") return askQuestion("Ups! 🙈 Data aceasta a trecut deja (avem nevoie de o mașină a timpului pentru asta 🕰️). Te rog alege o dată începând de astăzi înainte!");
             if (statusIn.reason === "not_exist") return askQuestion("Hmm... 🤔 Această dată nu există în calendar (poate luna are mai puține zile?). Te rog verifică și scrie din nou!");
             return askQuestion("Formatul nu este recunoscut 😅. Te rog scrie data folosind formatul AAAA-LL-ZZ (ex: 2026-07-15).");
         }
         setReservationData(p => ({ ...p, checkIn: trimmedInput }));
         setReservationStep('checkOut');
-        askQuestion("**Pasul 7:** Super! 🎉 Până în ce zi va rămâne la noi (Check-out)? 📅\n(Scrie data sub forma AAAA-LL-ZZ)");
+        askQuestion("Pasul 7: Super! 🎉 Până în ce zi va rămâne la noi (Check-out)? 📅\n(Scrie data sub forma AAAA-LL-ZZ)");
         break;
       case 'checkOut':
         const statusOut = checkDateValidity(trimmedInput, reservationData.checkIn);
         if (!statusOut.valid) {
-            if (statusOut.reason === "past") return askQuestion("Aoleu! 🙈 Această dată e în trecut. Te rog alege o dată viitoare!");
+            if (statusOut.reason === "past") return askQuestion("Această dată e în trecut. Te rog alege o dată viitoare!");
             if (statusOut.reason === "not_exist") return askQuestion("Hmm... 🤔 Această dată nu există calendaristic. Verifică te rog luna și ziua!");
-            if (statusOut.reason === "before_checkin") return askQuestion("Atenție! 🐾 Data plecării (check-out) trebuie să fie neapărat **după** data de sosire (check-in). Încearcă din nou!");
+            if (statusOut.reason === "before_checkin") return askQuestion("Atenție! 🐾 Data plecării (check-out) trebuie să fie neapărat după data de sosire (check-in). Încearcă din nou!");
             return askQuestion("Formatul nu este recunoscut 😅. Te rog respectă formatul AAAA-LL-ZZ.");
         }
         setReservationData(p => ({ ...p, checkOut: trimmedInput }));
         setReservationStep('specialRequests');
-        askQuestion("**Pasul 8:** Aproape gata! Ai anumite cerințe speciale pentru puiuțul tău? 🦴\n(ex: necesită medicamente, mănâncă de 3 ori pe zi etc. - sau scrie pur și simplu 'fără')");
+        askQuestion("Pasul 8: Aproape gata! Ai anumite cerințe speciale pentru animalul tău? 🦴\n(ex: necesită medicamente, alergic la ceva, etc. - sau scrie pur și simplu 'fără')");
         break;
       case 'specialRequests':
         const finalRequests = trimmedInput.toLowerCase() === 'fara' || trimmedInput.toLowerCase() === 'fără' ? '' : trimmedInput;
@@ -267,7 +293,7 @@ export default function ChatScreen({ navigation, route }) {
         const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
         const total = price * nights;
 
-        const summary = `✨ **Totul arată minunat! Iată sumarul rezervării tale:** ✨\n\n🏨 **Hotel:** ${selectedHotel?.name || 'Hotel'}\n💰 **Total:** ${total} RON (${nights} nopți)\n🐾 **Animal:** ${completeData.petName} (${completeData.petType})\n👤 **Proprietar:** ${completeData.ownerName}\n📅 **Perioadă:** ${formatDateForDisplay(completeData.checkIn)} - ${formatDateForDisplay(completeData.checkOut)}\n\nTrimitem cererea către recepție? **(Da/Nu)**`;
+        const summary = `✨ Totul arată minunat! Iată sumarul rezervării tale: ✨\n\n🏨 Hotel: ${selectedHotel?.name }\n💰 Total: ${total} RON (${nights} nopți)\n🐾 Animal: ${completeData.petName} (${completeData.petType})\n👤 Proprietar: ${completeData.ownerName}\n📅 Perioadă: ${formatDateForDisplay(completeData.checkIn)} - ${formatDateForDisplay(completeData.checkOut)}\n\nTrimitem cererea către recepție? (Da/Nu)`;
         askQuestion(summary);
         setQuickReplies(['Da', 'Nu']);
         break;
@@ -322,7 +348,7 @@ export default function ChatScreen({ navigation, route }) {
 
       const result = await response.json();
       if (response.ok && result.success) {
-        askQuestion("✅ **REZERVARE TRIMISĂ CU SUCCES!** 🎉\n\nAbia așteptăm să ne vizitați! Vei primi un email de confirmare în cel mai scurt timp. 🐾");
+        askQuestion("✅ REZERVARE TRIMISĂ CU SUCCES! 🎉\n\nAbia așteptăm să ne vizitați! Vei primi un email de confirmare în cel mai scurt timp. 🐾");
         resetReservation();
       } else {
         throw new Error(result.message || 'Eroare necunoscută la server.');
@@ -331,7 +357,7 @@ export default function ChatScreen({ navigation, route }) {
       if (err.name === 'AbortError') {
         askQuestion("❌ Ups! Conexiunea este lentă și serverul nu a răspuns la timp. Verifică internetul!");
       } else {
-        askQuestion(`❌ **Eroare:** ${err.message}\n\nÎncearcă din nou!`);
+        askQuestion(`❌ Eroare: ${err.message}\n\nÎncearcă din nou!`);
       }
     }
   };

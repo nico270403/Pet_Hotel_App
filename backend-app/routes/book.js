@@ -50,7 +50,7 @@ router.post("/bookings", async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const hotelInfo = await pool.query(`SELECT h.name, h.capacity, u.email as manager_email FROM hotels h LEFT JOIN users u ON h.id=u.hotel_id WHERE h.id = $1 `, [hotel_id]);
+    const hotelInfo = await pool.query(`SELECT h.name, h.capacity, u.email as manager_email FROM hotels h LEFT JOIN users u ON h.manager_id=u.id WHERE h.id = $1 `, [hotel_id]);
     const hotelCapacity = hotelInfo.rows[0]?.capacity || 5;
     const hotelName = hotelInfo.rows[0]?.name;
     const managerEmail = hotelInfo.rows[0]?.manager_email;
@@ -89,7 +89,6 @@ router.post("/bookings", async (req, res) => {
     const isRequestedAvailable = isSlotAvailable(inDate, durationDays);
 
     if (!isRequestedAvailable) {
-      // Căutăm sugestii viitoare
       let nextSlotStart = new Date(inDate);
       nextSlotStart.setDate(nextSlotStart.getDate() + 1);
       let nextFound = null;
@@ -238,7 +237,7 @@ router.get("/:id/accept", async (req, res) => {
             <h2>Rezervarea ta a fost aprobată!</h2>
             <p><strong>Hotel:</strong> ${hotel_name}</p>
             <p><strong>Perioada:</strong> ${new Date(booking.start_date).toLocaleDateString('ro-RO')} - ${new Date(booking.end_date).toLocaleDateString('ro-RO')}</p>
-            <p><strong>Animal:</strong> ${pet_name} (${pet_type})</p>
+            <p><strong>Animal:</strong> ${booking.pet_name} (${booking.pet_type})</p>
             <p><strong>Preț total:</strong> ${parseFloat(booking.price_total).toFixed(0)} RON</p>
             <p>Status:</strong> <strong style="color: #10b981;">Aprobată</strong></p>
             <p>Te așteptăm cu drag! 🐾</p>

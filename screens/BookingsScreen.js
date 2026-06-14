@@ -113,14 +113,13 @@ export default function BookingsScreen({ navigation }) {
     }
   };
 
-  // Funcție actualizată pentru a seta culoarea marginii cardului în funcție de noile reguli
   const getCardBorderColor = (status, startDate) => {
     const s = status ? status.toLowerCase() : ''; 
     if (s === 'pending' || s === 'în așteptare') {
       const checkInDate = new Date(startDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return checkInDate < today ? '#ef4444' : '#f59e0b'; // Roșu dacă a expirat, portocaliu dacă așteaptă
+      return checkInDate < today ? '#ef4444' : '#f59e0b'; 
     }
     if (s === 'paid') return '#3b82f6'; 
     if (s === 'approved' || s === 'confirmed') return '#22c55e'; 
@@ -128,7 +127,6 @@ export default function BookingsScreen({ navigation }) {
     return '#d1d5db'; 
   };
 
-  // Funcția principală care determină eticheta (badge-ul) de pe card
   const renderBookingStatus = (status, startDate) => {
     const s = status ? status.toLowerCase() : '';
     
@@ -229,8 +227,8 @@ export default function BookingsScreen({ navigation }) {
             renderItem={({ item }) => {
               const isApproved = item.status.toLowerCase() === 'approved' || item.status.toLowerCase() === 'confirmed';
               const isCompleted = new Date() > new Date(item.end_date);
-              const canReview = isCompleted && (item.status === 'paid' || item.status === 'approved') && !item.reviewed;
-              
+              const canPay = isApproved && !isCompleted;
+              const canReview = isCompleted && (item.status.toLowerCase() === 'paid' || isApproved) && !item.reviewed;              
               return (
                 <View style={[styles.card, { borderLeftColor: getCardBorderColor(item.status, item.start_date) }]}>
                   
@@ -249,7 +247,7 @@ export default function BookingsScreen({ navigation }) {
                     {renderBookingStatus(item.status, item.start_date)}
                   </View>
 
-                  {isApproved && (
+                  {canPay && (
                     <TouchableOpacity 
                       style={styles.payBtn}
                       onPress={() => handlePayment(item)}
@@ -332,26 +330,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     padding: 24 
   },
-  // header: { 
-  //   fontSize: 26, 
-  //   fontWeight: '900', 
-  //   marginBottom: 20, 
-  //   marginTop: 0, 
-  //   marginHorizontal: 24, 
-  //   paddingHorizontal: 20,
-  //   paddingVertical: 12,
-  //   color: '#0F172A', 
-  //   backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-  //   borderRadius: 16, 
-  //   alignSelf: 'flex-start', 
-  //   overflow: 'hidden', 
-  //   elevation: 6, 
-  //   shadowColor: '#000', 
-  //   shadowOffset: { width: 0, height: 4 }, 
-  //   shadowOpacity: 0.1, 
-  //   shadowRadius: 8
-  // },
-  
   emptyText: {
     color: '#475569', 
     fontSize: 16, 

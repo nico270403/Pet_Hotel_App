@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginAsGuest = (selectedRole) => {
-    setUser({ role: selectedRole, isGuest: true });
+    setUser({ role: selectedRole, isGuest: true, hotel_ids: [] });
   };
 
   const logout = async () => {

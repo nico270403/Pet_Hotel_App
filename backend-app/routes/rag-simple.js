@@ -31,7 +31,6 @@ function detectQuickIntent(msg) {
   if (/(ești prost|idiot|prost)/.test(m)) return "insult";
   if (/(ce poți face|help|ajutor)/.test(m)) return "help";
   
-  // NOU: Detectează când omul vrea să facă o rezervare generală
   if (/(vreau.*rezerv|toate.*hotel|arata.*hotel|vreau.*fac.*rezervare)/.test(m)) return "show_all";
 
   return null;
@@ -40,7 +39,7 @@ function detectQuickIntent(msg) {
 function extractFast(msg) {
   const m = normalize(msg);
 
-  const cities = ["bucuresti", "cluj", "timisoara", "iasi", "brasov", "oradea"];
+  const cities = ["Bucuresti", "Cluj", "Timisoara", "Iași", "Brașov", "Oradea"];
   const animals = animalsCache.length ? animalsCache : ["caine", "pisica", "hamster"];
 
   let city = cities.find(c => m.includes(c)) || null;
@@ -127,7 +126,6 @@ export async function ragChat(message, conversation = [], sessionId="default") {
   if (intent === "insult")
     return { text: "Ups! Sunt aici strict ca să te ajut cu hoteluri pentru animale. Dacă ai nevoie de o sugestie, spune-mi! 🐾" };
 
-  // NOU: Răspunsul empatic cu toate hotelurile
   if (intent === "show_all") {
     const allHotels = hotelsCache.slice(0, 10).sort((a, b) => b.rating - a.rating);
     return {
@@ -176,8 +174,9 @@ export async function ragChat(message, conversation = [], sessionId="default") {
   }
 
   return {
-    text: `Uite ce surpriză! 🐾 Am găsit ${results.length} locuri excelente în ${city} pentru un puiuț de ${animal}:`,
-    hotels: results
+    text: `Uite ce surpriză! 🐾 Am găsit ${results.length} locuri excelente în ${city}:`,
+    hotels: results,
+    context: { city, animal }
   };
 }
 
