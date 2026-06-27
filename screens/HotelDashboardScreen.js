@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars'; 
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle } from 'react-native-svg';
+import API_BASE_URL from '../api'
 
 const getLocalDateString = (dateInput) => {
   const d = new Date(dateInput);
@@ -67,7 +68,7 @@ export default function HotelDashboardScreen() {
       return;
     }
     try {
-      let url = `http://172.20.10.2:3000/api/dashboard/${activeHotelId}`;
+      let url = `${API_BASE_URL}/api/dashboard/${activeHotelId}`;
       if (filterDates.start && filterDates.end) url += `?startDate=${filterDates.start}&endDate=${filterDates.end}`;
       
       const response = await fetch(url);
@@ -183,7 +184,7 @@ export default function HotelDashboardScreen() {
 
   const handleApproveBooking = async () => {
     try {
-      const res = await fetch(`http://172.20.10.2:3000/api/book/${activeBooking.id}/accept`);
+      const res = await fetch(`${API_BASE_URL}/api/book/${activeBooking.id}/accept`);
       if (res.ok) {
         Alert.alert("Succes", "Rezervarea a fost aprobată!");
         setActionModalVisible(false);
@@ -194,7 +195,7 @@ export default function HotelDashboardScreen() {
 
   const handleRejectBooking = async () => {
     try {
-      const res = await fetch(`http://172.20.10.2:3000/api/book/${activeBooking.id}/reject`);
+      const res = await fetch(`${API_BASE_URL}/api/book/${activeBooking.id}/reject`);
       if (res.ok) {
         Alert.alert("Respinsă", "Cererea a fost respinsă.");
         setActionModalVisible(false);
@@ -205,7 +206,7 @@ export default function HotelDashboardScreen() {
 
   const handleUpdateStatus = async (status) => {
     try {
-      const res = await fetch(`http://172.20.10.2:3000/api/dashboard/booking/${activeBooking.id}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/booking/${activeBooking.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -216,7 +217,7 @@ export default function HotelDashboardScreen() {
 
   const handleDeleteBooking = async () => {
     try {
-      const res = await fetch(`http://172.20.10.2:3000/api/dashboard/booking/${activeBooking.id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/booking/${activeBooking.id}`, { method: 'DELETE' });
       if (res.ok) { setActionModalVisible(false); fetchDashboardData(); }
     } catch (error) { }
   };

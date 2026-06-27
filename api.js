@@ -1,4 +1,7 @@
-const API_BASE_URL = "http://172.20.10.2:3000"; 
+const API_BASE_URL = __DEV__ ? "http://172.20.10.2:3000" : "https://api.pet-hotel.ro";
+
+
+export default API_BASE_URL;
 
 export const api = {
   async getHotels() {

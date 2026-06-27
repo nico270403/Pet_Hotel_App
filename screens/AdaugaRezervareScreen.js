@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Calendar } from 'react-native-calendars';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import API_BASE_URL from '../api'
 
 const getLocalDateString = (d) => {
   const year = d.getFullYear();
@@ -17,7 +18,6 @@ export default function AdaugaRezervareScreen() {
   const route = useRoute();
   const { user } = useContext(AuthContext);
 
-  // Preluăm ID-ul din navigație, sau primul hotel al managerului ca rezervă
   const currentHotelId = route.params?.hotelId || (user?.hotel_ids && user.hotel_ids.length > 0 ? user.hotel_ids[0] : user?.hotel_id);
 
   useLayoutEffect(() => {
@@ -43,14 +43,14 @@ export default function AdaugaRezervareScreen() {
       }
 
       try {
-        const animalsRes = await fetch(`http://172.20.10.2:3000/api/dashboard/accepted-animals/${currentHotelId}`);
+        const animalsRes = await fetch(`${API_BASE_URL}/api/dashboard/accepted-animals/${currentHotelId}`);
         const animalsJson = await animalsRes.json();
         if (animalsJson.success && animalsJson.animals.length > 0) {
           setAcceptedAnimals(animalsJson.animals);
           setSelectedAnimalId(animalsJson.animals[0].id);
         }
 
-        const response = await fetch(`http://172.20.10.2:3000/api/dashboard/${currentHotelId}`);
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/${currentHotelId}`);
         const json = await response.json();
         
         if (json.success) {
@@ -183,7 +183,7 @@ export default function AdaugaRezervareScreen() {
     const petType = selectedAnimalObj ? selectedAnimalObj.name : null;
 
     try {
-      const response = await fetch('http://172.20.10.2:3000/api/dashboard/add-booking', {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/add-booking`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

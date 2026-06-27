@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import API_BASE_URL from '../api'
 
 export default function ReviewScreen({ route, navigation }) {
   const { booking } = route.params;
@@ -14,7 +15,7 @@ export default function ReviewScreen({ route, navigation }) {
     }
 
     try {
-      const response = await fetch("http://172.20.10.2:3000/api/reviews", {
+      const response = await fetch(`${API_BASE_URL}/api/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

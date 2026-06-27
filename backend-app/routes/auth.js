@@ -1,9 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from "express";
 import pool from "../db.js";
 import { Expo } from 'expo-server-sdk';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 let expo = new Expo();
 const router = express.Router();
@@ -43,8 +46,14 @@ router.post("/register", async (req, res) => {
        RETURNING id, name, email, phone, role`,
       [name, email, hashedPassword, phone || null, userRole]
     );
+
+    const token = jwt.sign(
+          { userId: user.id, role: user.role },
+          process.env.JWT_SECRET, 
+          { expiresIn: '7d' }
+        );
     
-    res.json({ success: true, user: { ...result.rows[0], hotel_ids: [] } });
+    res.json({ success: true, token: token, user: { ...result.rows[0], hotel_ids: [] } });
   } catch (err) {
     console.error("Eroare Register:", err);
     if (err.code === '23505') {
@@ -74,8 +83,15 @@ router.post("/login", async (req, res) => {
           hotels = hotelsResult.rows;
         }
 
+        const token = jwt.sign(
+          { userId: user.id, role: user.role },
+          process.env.JWT_SECRET, 
+          { expiresIn: '7d' }
+        );
+
         res.json({ 
           success: true, 
+          token: token,
           user: { 
             id: user.id, 
             name: user.name, 

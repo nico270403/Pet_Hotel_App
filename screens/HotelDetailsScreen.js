@@ -15,11 +15,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import MapView, { Marker } from 'react-native-maps';
+import API_BASE_URL from '../api'
 
 import { AuthContext } from '../context/AuthContext'; 
 
 const { width } = Dimensions.get("window"); 
-const API_BASE = "http://172.20.10.2:3000/api";
+const API_BASE = `${API_BASE_URL}/api`;
 
 const HotelDetailsScreen = ({ route, navigation }) => {
   const { hotelId } = route.params;

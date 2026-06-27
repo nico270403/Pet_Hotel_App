@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import React, { useEffect, useState, useContext } from "react";
 import { Platform, View, Text, ActivityIndicator, Alert, TouchableOpacity, SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -194,7 +196,7 @@ export default function App() {
       
       <View style={styles.screenFrame}>
         <AuthProvider>
-          <StripeProvider publishableKey="pk_test_51T2ERd12ViiqPzeDSePd8FBLZaGRNjRApKzQbRe4GNEQ20zedI3s927aJnLPZRvvBytSp2wRPL3LLyUWcXVVwICS00hyvcnFMy">
+          <StripeProvider publishableKey={process.env.STRIPE_PUBLISHABLE_KEY}>
             <NavigationContainer>
               <RootNavigator />
             </NavigationContainer>

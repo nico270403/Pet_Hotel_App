@@ -4,6 +4,7 @@ import { Alert, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import API_BASE_URL from '../api'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
       const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
 
-      await fetch('http://172.20.10.2:3000/api/auth/update-push-token', {
+      await fetch(`${API_BASE_URL}/api/auth/update-push-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, token })
@@ -63,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://172.20.10.2:3000/api/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -77,6 +78,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const userDB = data.user;
+      const userToken = data.token; 
 
       if (userDB.role !== roleSelectat) {
         Alert.alert(
@@ -88,6 +90,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser(userDB);
       await AsyncStorage.setItem('userData', JSON.stringify(userDB));
+      await AsyncStorage.setItem('userToken', userToken);
 
       if (userDB.id) {
         await registerForPushNotificationsAsync(userDB.id);
@@ -106,7 +109,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://172.20.10.2:3000/api/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role })

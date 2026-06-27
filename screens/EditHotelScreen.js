@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import API_BASE_URL from '../api';
 
 const AVAILABLE_ANIMALS = [
   'Câine', 'Pisică', 'Rozătoare', 'Papagal', 'Reptilă', 
@@ -43,7 +44,7 @@ export default function EditHotelScreen() {
 
   const fetchHotelData = async () => {
     try {
-      const response = await fetch(`http://172.20.10.2:3000/api/dashboard/hotel-details/${hotelId}`);
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/hotel-details/${hotelId}`);
       if (!response.ok) throw new Error('Eroare rețea');
       const data = await response.json();
       
@@ -67,7 +68,7 @@ export default function EditHotelScreen() {
         if (data.image_url) {
           const imageUrl = data.image_url.startsWith('http') 
             ? data.image_url 
-            : `http://172.20.10.2:3000/${data.image_url.startsWith('uploads/') ? data.image_url : 'uploads/'+data.image_url}`;
+            : `${API_BASE_URL}/${data.image_url.startsWith('uploads/') ? data.image_url : 'uploads/'+data.image_url}`;
           setMainImage(imageUrl);
         }
       } else {
@@ -154,7 +155,7 @@ export default function EditHotelScreen() {
         }
       });
 
-      const response = await fetch(`http://172.20.10.2:3000/api/dashboard/update-hotel/${hotelId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/update-hotel/${hotelId}`, {
         method: 'PUT',
         body: formData 
       });

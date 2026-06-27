@@ -1,9 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from "express";
 import Stripe from "stripe";
 import pool from "../db.js";
 
 
-const stripe = new Stripe("sk_test_51T2ERd12ViiqPzeDhIdze9vA4FgLni3nySBUSvNcTxO7O6u7cLJLr9uzBn8UfGnJkDhXIX1uGuiIExpTNeN0pBXb00iAfVii5C"); 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); 
 const router = express.Router();
 
 

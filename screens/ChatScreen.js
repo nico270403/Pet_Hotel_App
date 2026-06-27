@@ -5,6 +5,7 @@ import {
 import { api } from "../api";
 import { AuthContext } from "../context/AuthContext";
 import PetBackground from "./PetBackground";
+import API_BASE_URL from '../api'
 
 export default function ChatScreen({ navigation, route }) {
   
@@ -323,7 +324,7 @@ export default function ChatScreen({ navigation, route }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch('http://172.20.10.2:3000/api/book/bookings', {
+      const response = await fetch(`${API_BASE_URL}/api/book/bookings`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

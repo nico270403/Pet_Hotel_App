@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import API_BASE_URL from '../api'
 
 const AVAILABLE_ANIMALS = [
   'Câine', 'Pisică', 'Rozătoare', 'Papagal', 'Reptilă', 
@@ -126,7 +127,7 @@ export default function AddHotelScreen({ navigation }) {
           setLoading(false); return;
         }
 
-        const regResponse = await fetch('http://172.20.10.2:3000/api/auth/register', {
+        const regResponse = await fetch(`${API_BASE_URL}/api/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: managerName, email, password, role: 'manager' })
@@ -172,7 +173,7 @@ export default function AddHotelScreen({ navigation }) {
         formData.append('gallery', { uri: imgUri, name: filename, type });
       });
 
-      const response = await fetch('http://172.20.10.2:3000/api/dashboard/create-hotel', {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/create-hotel`, {
         method: 'POST', body: formData
       });
 

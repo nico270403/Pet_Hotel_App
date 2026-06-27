@@ -6,6 +6,8 @@ import {
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { AuthContext } from "../context/AuthContext";
 import PetBackground from "./PetBackground";
+import API_BASE_URL from '../api'
+
 
 LocaleConfig.locales['ro'] = {
   monthNames: ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
@@ -37,7 +39,7 @@ export default function ReservationScreen({ route, navigation }) {
 
   useEffect(() => {
     if (selectedHotel) {
-      fetch(`http://172.20.10.2:3000/api/book/unavailable-dates/${selectedHotel.id}`)
+      fetch(`${API_BASE_URL}/api/book/unavailable-dates/${selectedHotel.id}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -64,7 +66,7 @@ export default function ReservationScreen({ route, navigation }) {
   useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const response = await fetch("http://172.20.10.2:3000/api/hotels");
+        const response = await fetch(`${API_BASE_URL}/api/hotels`);
         const data = await response.json();
         setHotels(data.hotels || data);
         
@@ -110,7 +112,7 @@ export default function ReservationScreen({ route, navigation }) {
     };
 
     try {
-      const response = await fetch("http://172.20.10.2:3000/api/book/bookings", {
+      const response = await fetch("${API_BASE_URL}/api/book/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json"},
         body: JSON.stringify(booking)

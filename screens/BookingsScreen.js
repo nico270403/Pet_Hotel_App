@@ -5,6 +5,7 @@ import {
 import { AuthContext } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useStripe } from '@stripe/stripe-react-native'; 
+import API_BASE_URL from '../api';
 
 export default function BookingsScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);  
@@ -19,7 +20,7 @@ export default function BookingsScreen({ navigation }) {
     if (!user || user.isGuest) return;
     setLoading(true);
     try {
-      const response = await fetch(`http://172.20.10.2:3000/api/auth/my-bookings/${user.id}`);
+      const response = await fetch(`${API_BASE_URL}/api/auth/my-bookings/${user.id}`);
       const data = await response.json();
       if (data.bookings) setBookings(data.bookings);
     } catch (err) {
@@ -48,7 +49,7 @@ export default function BookingsScreen({ navigation }) {
   const handlePayment = async (booking) => {
     setPayingId(booking.id);
     try {
-      const response = await fetch("http://172.20.10.2:3000/api/payment/create-payment-intent", {
+      const response = await fetch(`${API_BASE_URL}/api/payment/create-payment-intent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: booking.price_total }),
@@ -83,7 +84,7 @@ export default function BookingsScreen({ navigation }) {
         return;
       }
 
-      const updateRes = await fetch(`http://172.20.10.2:3000/api/payment/mark-paid/${booking.id}`, {
+      const updateRes = await fetch(`${API_BASE_URL}/api/payment/mark-paid/${booking.id}`, {
         method: "PUT",
       });
       

@@ -15,6 +15,7 @@ import {
 import { getHotels } from '../dbHelpers';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import PetBackground from './PetBackground';
+import API_BASE_URL from '../api'
 
 const API_URLS = [
   'http://172.20.10.2:3000', 
@@ -24,7 +25,7 @@ const API_URLS = [
 
 const api = {
   async checkHealth() {
-    console.log('🔍 Testing backend connection...');
+    console.log(' Testing backend connection...');
     
     for (const baseUrl of API_URLS) {
       try {
@@ -39,11 +40,11 @@ const api = {
         
         if (response.ok) {
           const data = await response.json();
-          console.log(`✅ BACKEND FOUND: ${baseUrl}`);
+          console.log(` BACKEND FOUND: ${baseUrl}`);
           return { ...data, baseUrl };
         }
       } catch (error) {
-        console.log(`❌ Failed: ${baseUrl} - ${error.message}`);
+        console.log(` Failed: ${baseUrl} - ${error.message}`);
         continue;
       }
     }
@@ -51,7 +52,7 @@ const api = {
   },
 
   async getHotels(baseUrl) {
-   console.log(`📡 Fetching from: ${baseUrl}/api/hotels`);
+   console.log(` Fetching from: ${baseUrl}/api/hotels`);
     const response = await fetch(`${baseUrl}/api/hotels`);
     const data = await response.json();
     return data;
@@ -71,29 +72,29 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    console.log("🧠 Trimit semnal de încălzire către AI...");
-    fetch('http://172.20.10.2:3000/api/chat/warmup')
+    console.log("Trimit semnal de încălzire către AI...");
+    fetch(`${API_BASE_URL}/api/chat/warmup`)
       .then(res => res.json())
-      .then(data => console.log("✅ AI Status:", data.message))
-      .catch(err => console.log("⚠️ Eroare warmup:", err.message));
+      .then(data => console.log("AI Status:", data.message))
+      .catch(err => console.log("Eroare warmup:", err.message));
   }, []);
   
   const loadInitialData = async () => {
     try {
-      console.log('🚀 Starting data loading...');
+      console.log(' Starting data loading...');
       
       try {
         await api.checkHealth();
-        console.log('✅ Backend is running, using API');
+        console.log(' Backend is running, using API');
         setUsingBackend(true);
         await loadHotelsFromAPI();
       } catch (backendError) {
-        console.log('🔄 Backend not available, using local database');
+        console.log(' Backend not available, using local database');
         setUsingBackend(false);
         await loadHotelsFromLocal();
       }
     } catch (error) {
-      console.error('❌ Error loading initial data:', error);
+      console.error(' Error loading initial data:', error);
       Alert.alert('Error', 'Could not load hotels data');
     } finally {
       setLoading(false);
@@ -102,25 +103,25 @@ const HomeScreen = ({ navigation }) => {
 
   const loadHotelsFromAPI = async () => {
   try {
-    console.log('📡 Fetching hotels from API...');
+    console.log(' Fetching hotels from API...');
     const health = await api.checkHealth();
     const data = await api.getHotels(health.baseUrl);
-    console.log('✅ Hotels loaded from API:', data.hotels?.length || 0);
+    console.log(' Hotels loaded from API:', data.hotels?.length || 0);
     setHotels(data.hotels || []);
   } catch (error) {
-    console.error('❌ API fetch failed, falling back to local:', error);
+    console.error(' API fetch failed, falling back to local:', error);
     await loadHotelsFromLocal();
   }
 };
 
   const loadHotelsFromLocal = async () => {
     try {
-      console.log('💾 Loading hotels from local database...');
+      console.log(' Loading hotels from local database...');
       const hotelsData = await getHotels();
-      console.log('✅ Hotels loaded locally:', hotelsData.length);
+      console.log(' Hotels loaded locally:', hotelsData.length);
       setHotels(hotelsData);
     } catch (error) {
-      console.error('❌ Local database error:', error);
+      console.error(' Local database error:', error);
       Alert.alert('Database Error', 'Could not load hotels from local storage');
       setHotels([]);
     }
@@ -180,7 +181,6 @@ const HomeScreen = ({ navigation }) => {
 // );
 
 const renderHotelItem = ({ item }) => {
-    // 1. Aici facem logica (deci avem nevoie de acolade)
     let imagineFinala = 'https://placedog.net/400/300?random=' + item.id;
 
     if (item.image_url && item.image_url.trim() !== '') {
@@ -188,11 +188,10 @@ const renderHotelItem = ({ item }) => {
         imagineFinala = item.image_url;
       } else {
         const calePoza = item.image_url.startsWith('uploads/') ? item.image_url : `uploads/${item.image_url}`;
-        imagineFinala = `http://172.20.10.2:3000/${calePoza}`;
+        imagineFinala = `${API_BASE_URL}/${calePoza}`;
       }
     }
 
-    // 2. Aici afișăm vizualul (deci folosim return)
     return (
       <TouchableOpacity 
         style={styles.hotelCard}
@@ -204,10 +203,10 @@ const renderHotelItem = ({ item }) => {
           resizeMode="contain"
         />
         <View style={styles.hotelInfo}>
-          <Text style={styles.hotelName}>{item.name || 'Unknown Hotel'}</Text>
-          <Text style={styles.hotelLocation}>{item.city || 'Location not specified'}</Text>
+          <Text style={styles.hotelName}>{item.name}</Text>
+          <Text style={styles.hotelLocation}>{item.city}</Text>
           <Text style={styles.hotelDescription} numberOfLines={2}>
-            {item.short_description || 'No description available'}
+            {item.short_description || 'Descrierea acestei unități nu este disponibilă.'}
           </Text>
           <View style={styles.hotelFooter}>
             <View style={styles.ratingContainer}>
@@ -292,29 +291,34 @@ const renderHotelItem = ({ item }) => {
           <MapView
             style={styles.fullMap}
             initialRegion={{
-              latitude: 45.7489, 
-              longitude: 21.2087,
-              latitudeDelta: 4, 
-              longitudeDelta: 4,
+              latitude: hotels.length > 0 && hotels[0].latitude ? parseFloat(hotels[0].latitude) : 45.7489,
+              longitude: hotels.length > 0 && hotels[0].longitude ? parseFloat(hotels[0].longitude) : 21.2087,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
             }}
           >
-            {hotels.map((hotel) => (
-              <Marker
+            {hotels.map((hotel) => {
+              const lat = hotel.latitude ? parseFloat(hotel.latitude) : 45.7489;
+              const lng = hotel.longitude ? parseFloat(hotel.longitude) : 21.2087;
+
+              const finalLat = isNaN(lat) ? 45.7489 : lat;
+              const finalLng = isNaN(lng) ? 21.2087 : lng;
+              
+              return (
+                <Marker
                 key={hotel.id?.toString()}
                 coordinate={{
-                  latitude: hotel.latitude || 45.7489,
-                  longitude: hotel.longitude || 21.2087,
+                  latitude: finalLat,
+                  longitude: finalLng,
                 }}
-              >
-                <Callout onPress={() => navigation.navigate('HotelDetails', { hotelId: hotel.id })}>
-                  <View style={styles.calloutContainer}>
-                    <Text style={styles.calloutTitle}>{hotel.name}</Text>
-                    <Text style={styles.calloutPrice}>💰 {hotel.price_from || 100} RON/zi</Text>
-                    <Text style={styles.calloutLink}>Vezi detalii →</Text>
-                  </View>
-                </Callout>
+                title={hotel.name}
+
+                pinColor="#ef4444"
+                >
+                <Callout onPress={() => navigation.navigate('HotelDetails', { hotelId: hotel.id })}/>
               </Marker>
-            ))}
+              );
+            })}
           </MapView>
         </View>
       ) : hotels.length === 0 ? (
@@ -403,10 +407,25 @@ const styles = StyleSheet.create({
   },
   mapToggleText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
   fullMap: { width: '100%', height: '100%' },
-  calloutContainer: { padding: 10, minWidth: 150, alignItems: 'center' },
-  calloutTitle: { fontWeight: 'bold', fontSize: 14, marginBottom: 5 },
-  calloutPrice: { color: '#2563eb', fontWeight: 'bold', fontSize: 13, marginBottom: 5 },
-  calloutLink: { color: '#64748b', fontSize: 11, fontStyle: 'italic', marginTop: 4 }
+  calloutContainer: {
+  width: 160, 
+  padding: 5,
+  backgroundColor: '#ffffff',
+  borderRadius: 8,
+  alignItems: 'center',
+},
+calloutTitle: {
+  fontWeight: 'bold',
+  fontSize: 14,
+  color: '#333333',
+  marginBottom: 4,
+  textAlign: 'center',
+},
+calloutLink: {
+  fontSize: 11,
+  color: '#2563eb',
+  fontWeight: '600',
+}
 });
 
 export default HomeScreen
