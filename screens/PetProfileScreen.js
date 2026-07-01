@@ -118,7 +118,7 @@ export default function PetProfileScreen({ navigation }) {
   };
 
   const askAIAboutPet = (pet) => {
-    const promptText = `Datele animalului meu: Este un ${pet.species} (rasa ${pet.breed}), are ${pet.age}. ${pet.allergies ? `Are următoarele allergies/cerințe speciale: ${pet.allergies}.` : 'Nu are cerințe speciale.'} Numele lui este ${pet.name}.`;
+    const promptText = `Datele animalului meu: Este un ${pet.species} (rasa ${pet.breed}), are ${pet.age}. ${pet.allergies ? `Are următoarele alergii/cerințe speciale: ${pet.allergies}.` : 'Nu are cerințe speciale.'} Numele lui este ${pet.name}.`;
     navigation.navigate('Chat', { initialPrompt: promptText, petName: pet.name, petType: pet.species });
   };
 
@@ -158,7 +158,7 @@ export default function PetProfileScreen({ navigation }) {
                 </View>
               ) : (
                 <TouchableOpacity style={styles.btnPickImage} onPress={pickImage}>
-                  <Text style={styles.btnPickImageText}>📸 Alege o poză din galerie</Text>
+                  <Text style={styles.btnPickImageText}> Alege o poză din galerie</Text>
                 </TouchableOpacity>
               )}
             </View>

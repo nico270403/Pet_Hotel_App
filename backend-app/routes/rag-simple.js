@@ -10,11 +10,20 @@ let hotelAnimalsCache = {};
 
 const sessions = new Map();
 
+// const normalize = (t) =>
+//   (t || "")
+//     .toLowerCase()
+//     .normalize("NFD")
+//     .replace(/[\u0300-\u036f]/g, "");
+
 const normalize = (t) =>
   (t || "")
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/ă/g, "a")
+    .replace(/â/g, "a")
+    .replace(/î/g, "i")
+    .replace(/[șş]/g, "s")
+    .replace(/[țţ]/g, "t");
 
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
@@ -42,7 +51,7 @@ function extractFast(msg) {
   const cities = ["Bucuresti", "Cluj", "Timisoara", "Iași", "Brașov", "Oradea"];
   const animals = animalsCache.length ? animalsCache : ["caine", "pisica", "hamster"];
 
-  let city = cities.find(c => m.includes(c)) || null;
+  let city = cities.find(c => m.includes(normalize(c))) || null;
   let animal = animals.find(a => m.includes(normalize(a))) || null;
 
   return { city, animal };
@@ -57,6 +66,7 @@ async function extractLLM(msg) {
       prompt: `Extrage JSON: city, animal din: "${msg}"`,
       format: "json",
       stream: false,
+      keep_alive: "30m",
       options: { temperature: 0 }
     })
   });
@@ -139,17 +149,22 @@ export async function ragChat(message, conversation = [], sessionId="default") {
 
   let { city, animal } = extractFast(message);
 
+
+  city = city || session.city;
+  animal = animal || session.animal;
+
   if (!city || !animal) {
+    console.log(`Lipsesc date (city=${city}, animal=${animal}) → apelez Ollama...`);
     const llm = await extractLLM(message);
     city = city || llm.city;
     animal = animal || llm.animal;
+  }else{
+  console.log(` Găsit din text/sesiune: city=${city}, animal=${animal} → Ollama SĂRIT`);
   }
 
   if (city) session.city = city;
   if (animal) session.animal = animal;
 
-  city = city || session.city;
-  animal = animal || session.animal;
 
   if (!city && !animal) {
     return {

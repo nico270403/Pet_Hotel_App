@@ -59,9 +59,9 @@ const testConnection = async () => {
   let client;
   try {
     client = await pool.connect();
-    console.log('✅ Conectat la PostgreSQL - TEST SUCCESS');
+    console.log(' Conectat la PostgreSQL - TEST SUCCESS');
   } catch (err) {
-    console.error('❌ Eroare conectare PostgreSQL:', err.message);
+    console.error(' Eroare conectare PostgreSQL:', err.message);
   } finally {
     if (client) client.release();
   }
@@ -70,8 +70,8 @@ const testConnection = async () => {
 testConnection();
 
 app.use((req, res, next) => {
-  console.log(`📍 [${new Date().toISOString()}] ${req.method} ${req.url}`);
-  // console.log(`📍 Client IP: ${req.ip}`); 
+  console.log(` [${new Date().toISOString()}] ${req.method} ${req.url}`);
+  // console.log(`Client IP: ${req.ip}`); 
   next();
 });
 
@@ -95,7 +95,7 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/hotels", async (req, res) => {
   try {
-    console.log("📡 Cerere pentru hoteluri primită");
+    console.log(" Cerere pentru hoteluri primită");
     
     const result = await pool.query(`
       SELECT id, name, short_description, city, rating, image_url, latitude, longitude, price_per_day
@@ -103,7 +103,7 @@ app.get("/api/hotels", async (req, res) => {
       ORDER BY rating DESC
     `);
     
-    console.log(`✅ Trimit ${result.rows.length} hoteluri`);
+    console.log(`Trimit ${result.rows.length} hoteluri`);
     
     res.json({
       success: true,
@@ -150,8 +150,8 @@ const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0'; // Ascult pe toate interfețele
 
 app.listen(PORT, HOST, () => {
-  console.log(`🚀 Backend Server pornit!`);
-  console.log(`📍 Local: http://localhost:${PORT}`);
-  console.log(`📍 Rețea: http://172.20.10.2:${PORT}`); 
-  console.log(`📍 Accesibil de pe orice dispozitiv din rețea`);
+  console.log(` Backend Server pornit!`);
+  console.log(` Local: http://localhost:${PORT}`);
+  console.log(` Rețea: http://172.20.10.2:${PORT}`); 
+  console.log(` Accesibil de pe orice dispozitiv din rețea`);
 });

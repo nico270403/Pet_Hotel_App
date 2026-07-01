@@ -25,12 +25,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "adjustResize",
+      "edgeToEdgeEnabled": false,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBDKzqwULzH06UwWLl6pDy7kF5W9NCJT-E"
         }
       }
+
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -40,6 +42,8 @@
       "@react-native-community/datetimepicker"
     ],
     "extra": {
+      "STRIPE_PUBLISHABLE_KEY": "pk_test_51T2ERd12ViiqPzeDSePd8FBLZaGRNjRApKzQbRe4GNEQ20zedI3s927aJnLPZRvvBytSp2wRPL3LLyUWcXVVwICS00hyvcnFMy",
+      "BACKEND_URL": "http://172.20.10.2:3000",
       "eas": {
         "projectId": "f211decc-83b0-4695-8d96-06a2a64226f7"
       }

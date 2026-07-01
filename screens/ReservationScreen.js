@@ -112,7 +112,7 @@ export default function ReservationScreen({ route, navigation }) {
     };
 
     try {
-      const response = await fetch("${API_BASE_URL}/api/book/bookings", {
+      const response = await fetch(`${API_BASE_URL}/api/book/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json"},
         body: JSON.stringify(booking)

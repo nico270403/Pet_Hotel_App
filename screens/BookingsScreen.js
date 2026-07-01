@@ -1,7 +1,8 @@
 import React, { useContext, useState, useCallback } from 'react';
 import { 
-  View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, Alert, ImageBackground, SafeAreaView, StatusBar
+  View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, Alert, ImageBackground, StatusBar
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useStripe } from '@stripe/stripe-react-native'; 

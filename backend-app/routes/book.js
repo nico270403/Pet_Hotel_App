@@ -25,6 +25,7 @@ const formatDateRO = (d) => {
 
 
 router.post("/bookings", async (req, res) => {
+  console.log("BODY PRIMIT DE LA TELEFON:", req.body); 
   try {
     const {
       hotel_id, user_id, pet_name, pet_type,

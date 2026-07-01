@@ -6,12 +6,12 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Alert,
   ActivityIndicator,
   ImageBackground
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getHotels } from '../dbHelpers';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import PetBackground from './PetBackground';

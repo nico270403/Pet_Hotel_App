@@ -20,7 +20,6 @@ export const addHotelDirect = async (hotel) => {
       const hotelId = result.lastInsertRowId;
       console.log(`Hotel added with ID: ${hotelId}`);
       
-      // Inserează imaginile (dacă există)
       if (hotel.images && hotel.images.length) {
         for (const [index, uri] of hotel.images.entries()) {
           db.runSync(

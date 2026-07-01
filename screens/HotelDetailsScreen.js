@@ -20,7 +20,6 @@ import API_BASE_URL from '../api'
 import { AuthContext } from '../context/AuthContext'; 
 
 const { width } = Dimensions.get("window"); 
-const API_BASE = `${API_BASE_URL}/api`;
 
 const HotelDetailsScreen = ({ route, navigation }) => {
   const { hotelId } = route.params;
@@ -57,21 +56,21 @@ const HotelDetailsScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchHotelDetails = async () => {
       try {
-        const resHotel = await fetch(`${API_BASE}/hotels/${hotelId}`);
+        const resHotel = await fetch(`${API_BASE_URL}/api/hotels/${hotelId}`);
         if (!resHotel.ok) throw new Error("Hotel not found");
         const hotelData = await resHotel.json();
         setHotel(hotelData.hotel);
 
-        const resImages = await fetch(`${API_BASE}/hotel_images/${hotelId}`);
+        const resImages = await fetch(`${API_BASE_URL}/api/hotel_images/${hotelId}`);
         const imagesData = await resImages.json();
         setImages(
           imagesData.length > 0
             ? imagesData.map((img) => ({ uri: img.image_url }))
-            : [{ uri: hotelData.hotel?.image_url || "https://placedog.net/400/300?random=1" }]
+            : [{ uri: hotelData.hotel?.image_url }] 
         );
 
         try {
-          const resReviews = await fetch(`${API_BASE}/reviews/hotel/${hotelId}`);
+          const resReviews = await fetch(`${API_BASE_URL}/api/reviews/hotel/${hotelId}`);
           const reviewsData = await resReviews.json();
           if (reviewsData.success) {
             setReviews(reviewsData.reviews);

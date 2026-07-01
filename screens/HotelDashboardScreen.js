@@ -39,7 +39,6 @@ export default function HotelDashboardScreen() {
   const navigation = useNavigation();
   const { user, logout } = useContext(AuthContext);
 
-  // Extragem ID-ul primului hotel din noua structura user.hotels
   const [activeHotelId, setActiveHotelId] = useState(
     user?.hotels && user.hotels.length > 0 ? user.hotels[0].id : null
   );
@@ -236,9 +235,14 @@ export default function HotelDashboardScreen() {
     if (lower.includes('peșt') || lower.includes('pest')) return '🐟';
     if (lower.includes('broasc') || lower.includes('țestoas')) return '🐢';
     if (lower.includes('aric')) return '🦔';
-    if (lower.includes('pas') || lower.includes('păs')) return '🦜';
+    if (lower.includes('pap') || lower.includes('pap')) return '🦜';
+    if (lower.includes('roz') ) return '🐁';
+    if (lower.includes('rep') ) return '🐍';
+    if (lower.includes('reptile mici') ) return '🦎';
+    if (lower.includes('reptile mici') ) return '🐿️';
     if (lower.includes('iep')) return '🐰';
-    if (lower.includes('hamster') || lower.includes('porcușor')) return '🐹';
+    if (lower.includes('dih')) return '🦦';
+    if (lower.includes('hamster') || lower.includes('porcușor') || lower.includes('chinchilla') || lower.includes('gerbil')) return '🐹';
     return '🐾';
   };
 
@@ -534,9 +538,8 @@ const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#f8fafc' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
-  // STILURI HEADER NOU
   headerContainer: { 
-    backgroundColor: '#0d9488', // Teal 600 - o culoare superba si eleganta
+    backgroundColor: '#0d9488', 
     paddingHorizontal: 20, 
     paddingTop: 20, 
     paddingBottom: 25, 

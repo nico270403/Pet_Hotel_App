@@ -3,11 +3,23 @@ import { ragChat } from './rag-simple.js';
 
 const router = express.Router();
 
+// router.get('/warmup', async (req, res) => {
+//   try {
+//     await ragChat("Salut", [], "warmup_session"); 
+//     res.json({ success: true, message: "AI is awake and ready!" });
+//   } catch (err) {
+//     res.status(500).json({ success: false });
+//   }
+// });
+
 router.get('/warmup', async (req, res) => {
   try {
-    await ragChat("Salut", [], "warmup_session"); 
+    console.log(" Pornesc încălzirea Ollama...");
+    await ragChat("Am nevoie de recomandări pentru cazarea unui animal de companie", [], "warmup_session");
+    console.log(" Ollama e încălzit și gata de răspuns rapid!");
     res.json({ success: true, message: "AI is awake and ready!" });
   } catch (err) {
+    console.log(" Warmup eșuat — probabil Ollama nu rulează:", err.message);
     res.status(500).json({ success: false });
   }
 });

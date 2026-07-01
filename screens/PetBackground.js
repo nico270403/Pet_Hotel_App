@@ -6,9 +6,9 @@ export default function PetBackground({ children, style, rightSlot, leftSlot, is
   const { logout } = useContext(AuthContext);
 
   const handleLogout = () => {
-    Alert.alert("Deconectare", "Ești sigur că vrei să ieși?", [
+    Alert.alert("Deconectare", "Ești sigur că vrei să te deconectezi?", [
       { text: "Anulează", style: "cancel" },
-      { text: "Da", onPress: logout, style: "destructive" }
+      { text: "Da, deconectează-mă ", onPress: logout, style: "destructive" }
     ]);
   };
 

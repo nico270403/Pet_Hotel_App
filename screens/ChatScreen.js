@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { 
-  View, TextInput, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, StyleSheet
+  View, TextInput, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, StyleSheet, Keyboard
 } from "react-native";
 import { api } from "../api";
 import { AuthContext } from "../context/AuthContext";
 import PetBackground from "./PetBackground";
 import API_BASE_URL from '../api'
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ChatScreen({ navigation, route }) {
   
@@ -30,7 +31,6 @@ export default function ChatScreen({ navigation, route }) {
   const [quickReplies, setQuickReplies] = useState([
     "Caut hotel pentru câine în București",
     "Vreau hotel pentru pisică în Cluj",
-    "Hotel pentru hamster în Timișoara",
     "Vreau să fac o rezervare"
   ]);
   
@@ -111,6 +111,8 @@ export default function ChatScreen({ navigation, route }) {
     const textToSend = messageText || input.trim();
     if (!textToSend || isLoading) return;
     if (!messageText) setInput("");
+
+    setHotels([]);
     
     setMessages(prev => [...prev, { id: generateId('user'), from: "user", text: textToSend }]);
 
@@ -142,7 +144,7 @@ export default function ChatScreen({ navigation, route }) {
           ...h, 
           uniqueId: h.id ? h.id.toString() : generateId('hotel') 
         }));
-        setHotels(prev => [...prev, ...hotelsWithIds]);
+        setHotels(hotelsWithIds);
         setHotelsShown(prev => [...prev, ...hotelsWithIds.map(h => h.uniqueId)]);
       }
 
@@ -155,6 +157,9 @@ export default function ChatScreen({ navigation, route }) {
   };
 
   const startReservationFlow = (hotel = null) => {
+    setTimeout(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, 300);
     setHideHotels(true);
     setIsReservationMode(true);
     setQuickReplies([]);
@@ -397,14 +402,31 @@ export default function ChatScreen({ navigation, route }) {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages, hotels]);
 
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+useEffect(() => {
+  const showSub = Keyboard.addListener(
+    Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+    (e) => setKeyboardHeight(e.endCoordinates.height)
+  );
+  const hideSub = Keyboard.addListener(
+    Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+    () => setKeyboardHeight(0)
+  );
+  return () => {
+    showSub.remove();
+    hideSub.remove();
+  };
+}, []);
+
+  const insets = useSafeAreaInsets();
+
   return (
     <PetBackground>
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior="padding" 
-        keyboardVerticalOffset={Platform.OS === "ios" ? 70 : 60} 
-      >     
-       <ScrollView style={styles.chatContainer} ref={scrollViewRef} contentContainerStyle={styles.chatContent} showsVerticalScrollIndicator={false}>
+      <View style={{flex: 1}} >
+        
+   <ScrollView style={styles.chatContainer} ref={scrollViewRef} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
         {messages.map((m) => (
           <View key={m.id} style={[styles.messageContainer, m.from === "bot" ? styles.botMessage : styles.userMessage]}>
             <Text style={[styles.messageText, m.from === "bot" ? styles.botMessageText : styles.userMessageText]}>{m.text}</Text>
@@ -413,9 +435,9 @@ export default function ChatScreen({ navigation, route }) {
 
         {hotels.length > 0 && !hideHotels && !isReservationMode && (
           <View style={styles.hotelsSection}>
-            <Text style={styles.hotelsTitle}>🏨 {hotels.length} hoteluri găsite:</Text>
-            {hotels.map((hotel) => (
-              <TouchableOpacity key={hotel.uniqueId} onPress={() => bookHotel(hotel)} style={styles.hotelCard} activeOpacity={0.7}>
+            <Text style={styles.hotelsTitle}> {hotels.length} hoteluri găsite:</Text>
+            {hotels.map((hotel, index) => (
+              <TouchableOpacity key={`hotel_${hotel.id}_${index}`} onPress={() => bookHotel(hotel)} style={styles.hotelCard} activeOpacity={0.7}>
                 <View style={styles.hotelHeader}>
                   <View style={{flex: 1}}>
                     <Text style={styles.hotelName}>{hotel.name}</Text>
@@ -442,7 +464,7 @@ export default function ChatScreen({ navigation, route }) {
         {quickReplies.length > 0 && !isLoading && (
           <View style={styles.quickRepliesContainer}>
             {quickReplies.map((r, i) => (
-              <TouchableOpacity key={i} onPress={() => send(r)} style={styles.quickReplyButton} activeOpacity={0.7}>
+              <TouchableOpacity key={`reply_${r}_${i}`} onPress={() => send(r)} style={styles.quickReplyButton} activeOpacity={0.7}>
                 <Text style={styles.quickReplyText}>{r}</Text>
               </TouchableOpacity>
             ))}
@@ -452,7 +474,7 @@ export default function ChatScreen({ navigation, route }) {
         {isReservationMode && (
           <View style={styles.reservationIndicator}>
             <Text style={styles.reservationIndicatorText}>
-              🏨 Rezervare activă - Pasul {getReservationStepNumber(reservationStep)}/9
+               Rezervare activă - Pasul {getReservationStepNumber(reservationStep)}/9
             </Text>
             <TouchableOpacity onPress={cancelReservation} style={styles.cancelReservationButton}>
               <Text style={{color:'#fff'}}>❌ Anulează</Text>
@@ -461,12 +483,12 @@ export default function ChatScreen({ navigation, route }) {
         )}
       </ScrollView>
 
-      <View style={styles.inputContainer}>
-        <TextInput style={styles.textInput} value={input} onChangeText={setInput} placeholder="Scrie mesajul tău aici..." onSubmitEditing={() => send()} editable={!isLoading} />
-        <TouchableOpacity onPress={() => send()} disabled={!input.trim() || isLoading} style={[styles.sendButton, (!input.trim() || isLoading) && styles.sendButtonDisabled]}><Text style={{color:'#fff', fontSize: 16}}>➤</Text></TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
-    </PetBackground>
+      <View style={[styles.inputContainer, { marginBottom: keyboardHeight }]}>
+    <TextInput style={styles.textInput} value={input} onChangeText={setInput} placeholder="Scrie mesajul tău aici..." onSubmitEditing={() => send()} editable={!isLoading} />
+    <TouchableOpacity onPress={() => send()} disabled={!input.trim() || isLoading} style={[styles.sendButton, (!input.trim() || isLoading) && styles.sendButtonDisabled]}><Text style={{color:'#fff', fontSize: 16}}>➤</Text></TouchableOpacity>
+  </View>
+  </View>
+</PetBackground>
   );
 }
 
@@ -503,7 +525,8 @@ const styles = StyleSheet.create({
   quickRepliesContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   quickReplyButton: { backgroundColor: "#f0f0f0", paddingVertical: 10, paddingHorizontal: 15, borderRadius: 20, margin: 4, borderWidth: 1, borderColor: "#e0e0e0" },
   quickReplyText: { color: "#007AFF", fontSize: 14 },
-  inputContainer: { flexDirection: "row", padding: 12, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#e0e0e0", alignItems: "center", gap: 10 },
+  inputContainer: {flexDirection: "row", padding: 12, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#e0e0e0", alignItems: "center", gap: 10,   paddingBottom: 20,
+},
   textInput: { flex: 1, backgroundColor: "#f9f9f9", paddingHorizontal: 15, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: "#ddd", fontSize: 15 },
   sendButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#007AFF", justifyContent: "center", alignItems: "center", shadowColor: "#007AFF", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 3 },
   sendButtonDisabled: { backgroundColor: "#ccc", shadowOpacity: 0 },

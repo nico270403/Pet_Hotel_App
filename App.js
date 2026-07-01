@@ -1,7 +1,6 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import React, { useEffect, useState, useContext } from "react";
-import { Platform, View, Text, ActivityIndicator, Alert, TouchableOpacity, SafeAreaView, StatusBar, StyleSheet } from "react-native";
+import { Platform, View, Text, ActivityIndicator, Alert, TouchableOpacity, StatusBar, StyleSheet } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -170,7 +169,7 @@ export default function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        console.log('🚀 Starting app...');
+        console.log(' Starting app...');
         await initDatabase();
         const seeded = await AsyncStorage.getItem("hotels_seeded");
         if (!seeded) {
@@ -179,7 +178,7 @@ export default function App() {
         }
         setAppState('ready');
       } catch (err) {
-        console.error('❌ Init failed:', err);
+        console.error(' Init failed:', err);
         setError(err.message);
         setAppState('error');
       }

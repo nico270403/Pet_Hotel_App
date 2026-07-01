@@ -5,7 +5,6 @@ import { Platform } from 'react-native';
 console.log('SQLite module in database.js:', { openDatabaseSync });
 
 const openDatabase = () => {
-  // Fallback pentru web
   if (Platform.OS === 'web') {
     console.log('Using mock database for web platform');
     return {
@@ -90,7 +89,7 @@ export const initDatabase = () => {
         db.runSync(`CREATE INDEX IF NOT EXISTS idx_hotels_city ON hotels(city);`);
         db.runSync(`CREATE INDEX IF NOT EXISTS idx_bookings_synced ON bookings(synced);`);
         
-        console.log('✅ Database initialized successfully with runSync');
+        console.log(' Database initialized successfully with runSync');
         resolve(db);
         return;
       }
@@ -144,7 +143,7 @@ export const initDatabase = () => {
           CREATE INDEX IF NOT EXISTS idx_bookings_synced ON bookings(synced);
         `);
         
-        console.log('✅ Database initialized successfully with execSync');
+        console.log(' Database initialized successfully with execSync');
         resolve(db);
         return;
       }
@@ -152,7 +151,7 @@ export const initDatabase = () => {
       throw new Error('No compatible database methods found');
       
     } catch (error) {
-      console.error('❌ Database initialization failed:', error);
+      console.error(' Database initialization failed:', error);
       reject(error);
     }
   });

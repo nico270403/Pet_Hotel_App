@@ -1,12 +1,12 @@
 // dbHelpers.js
 import db from "./database";
 
-/* HOTELS - citire */
+/* HOTELS  */
 export const getHotels = () => {
   try {
     console.log('Getting hotels from database...');
     
-    // Folosește getAllSync pentru a obține toate hotelurile
+    // getAllSync pentru a obține toate hotelurile
     if (db.getAllSync) {
       const hotels = db.getAllSync(
         `SELECT * FROM hotels ORDER BY rating DESC, name ASC;`
@@ -69,7 +69,7 @@ export const getHotelsWithImages = () => {
         `SELECT * FROM hotels ORDER BY rating DESC, name ASC;`
       );
       
-      // Pentru fiecare hotel, obține imaginile
+      // Pentru fiecare hotel, obtin imaginile
       const hotelsWithImages = hotels.map(hotel => {
         const images = db.getAllSync(
           `SELECT * FROM hotel_images WHERE hotel_id = ? ORDER BY is_primary DESC;`,
@@ -133,14 +133,14 @@ export const getAllBookings = () => {
 export const getHotelWithDetails = (hotelId) => {
   try {
     if (db.getFirstSync) {
-      // Obține detaliile hotelului
+      // Obtin detaliile hotelului
       const hotel = db.getFirstSync(
         `SELECT * FROM hotels WHERE id = ?;`,
         [hotelId]
       );
       
       if (hotel) {
-        // Obține imaginile hotelului
+        // Obtin imaginile hotelului
         const images = db.getAllSync(
           `SELECT * FROM hotel_images WHERE hotel_id = ? ORDER BY is_primary DESC;`,
           [hotelId]
