@@ -461,4 +461,4 @@ Backend-ul apelează automat un endpoint de "încălzire" (`/api/chat/warmup`) a
 
 **[Catană Nicoleta-Cristina]**
 Lucrare de licență — Universitatea Politehnica Timișoara, Facultatea de Automatică și Calculatoare
-Anul universitar: 2026
+Anul universitar: 2025-2026
