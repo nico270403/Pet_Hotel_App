@@ -1,5 +1,10 @@
 # 🐾 Pet Hotel App
 
+## Repository
+   Link: https://github.com/nico270403/Pet_Hotel_App
+   Vizibilitate: Public
+
+   
 Aplicație mobilă full-stack pentru căutarea, rezervarea și administrarea unităților de cazare pentru animale de companie. Aplicația are două fluxuri complet separate — unul pentru clienți (proprietari de animale care caută și rezervă cazare) și unul pentru manageri (administratori de hoteluri pentru animale) — plus un asistent conversațional AI care ajută clientul să găsească și să rezerve o cazare direct din chat.
 
 > Lucrare de licență — Aplicație practică
