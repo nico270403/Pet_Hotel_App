@@ -1,5 +1,7 @@
 import express from 'express';
 import { ragChat } from './rag-simple.js';
+import { parseNaturalDate } from './dateParser.js';
+
 
 const router = express.Router();
 
@@ -21,6 +23,16 @@ router.get('/warmup', async (req, res) => {
   } catch (err) {
     console.log(" Warmup eșuat — probabil Ollama nu rulează:", err.message);
     res.status(500).json({ success: false });
+  }
+});
+
+router.post('/parse-date', (req, res) => {
+  try {
+    const { text } = req.body;
+    const parsedDate = parseNaturalDate(text || '');
+    res.json({ success: true, date: parsedDate });
+  } catch (err) {
+    res.status(500).json({ success: false, date: null });
   }
 });
 

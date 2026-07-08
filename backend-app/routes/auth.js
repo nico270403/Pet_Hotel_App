@@ -47,8 +47,9 @@ router.post("/register", async (req, res) => {
       [name, email, hashedPassword, phone || null, userRole]
     );
 
+    const newUser=result.rows[0];
     const token = jwt.sign(
-          { userId: user.id, role: user.role },
+          { userId: newUser, role: newUser.role },
           process.env.JWT_SECRET, 
           { expiresIn: '7d' }
         );
@@ -107,14 +108,6 @@ router.post("/login", async (req, res) => {
   } } catch (err) {
     console.error("Eroare Login:", err);
     res.status(500).json({ error: "Eroare server la login" });
-  }
-});
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'adresa.ta@gmail.com',
-    pass: 'parola_de_aplicatie_gmail' 
   }
 });
 

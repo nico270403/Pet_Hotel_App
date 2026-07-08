@@ -1,8 +1,9 @@
-import chrono from "chrono-node";
+import * as chrono from "chrono-node";
 import { addDays, endOfMonth, nextSaturday, nextSunday, format } from "date-fns";
 
 export function parseNaturalDate(text) {
   const now = new Date();
+  now.setHours(0, 0, 0, 0);
   const lower = text.toLowerCase();
 
   if (lower.includes("mâine") || lower.includes("maine")) {

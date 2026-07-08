@@ -84,13 +84,16 @@ export default function AddHotelScreen({ navigation }) {
     return (
       <View style={styles.promoContainer}>
         <Text style={{ fontSize: 80, marginBottom: 10 }}></Text>
+        <Text style={styles.promoTitle}>  PET HOTEL - partenerul tău pentru gestionarea activității unităților pe care le administrezi  </Text>
         <Text style={styles.promoTitle}>Dezvoltă-ți afacerea cu noi!</Text>
         <View style={styles.promoList}>
-          <Text style={styles.promoItem}> Atrage clienți noi lunar</Text>
-          <Text style={styles.promoItem}> Gestionează rezervările direct din telefon</Text>
+          <Text style={styles.promoItem}> Atrage clienți noi lunar!</Text>
+          <Text style={styles.promoItem}> Gestionează rezervările direct din telefon!</Text>
           <Text style={styles.promoItem}> Acces asupra vizualizării detaliilor importante: </Text>
-          <Text> - sume încasate în orice interval de timp, </Text>
-          <Text> - vizualizarea gradului de ocupare în orice zi dorită. </Text>
+          <Text> - sume încasate în orice interval de timp </Text>
+          <Text> - vizualizarea gradului de ocupare în orice zi dorită </Text>
+          <Text> - tipurile de animale care frecventează unitatea </Text>
+
         </View>
         <Text style={styles.promoSubtitle}>Înscrie-ți unitatea de cazare gratuit și începe să primești rezervări imediat.</Text>
         
@@ -185,8 +188,7 @@ export default function AddHotelScreen({ navigation }) {
         
         Alert.alert(
           "Felicitări! ", 
-          "Unitatea a fost configurată cu succes!",
-          "Vei fi direcționat către panoul de control al unității adăugate." 
+          "Unitatea a fost configurată cu succes! Vei fi direcționat către panoul de control al unității adăugate.", 
           [{ 
             text: "OK", 
             onPress: () => {
@@ -195,7 +197,7 @@ export default function AddHotelScreen({ navigation }) {
                 name: managerName, 
                 email: user?.isGuest ? email : user.email, 
                 role: 'manager', 
-                hotels: [...currentHotels, {id: newHotelId, name: name}]
+                hotels: [...currentHotelIds, {id: newHotelId, name: name}]
               });
               setTimeout(() => {
                 navigation.reset({ index: 0, routes: [{ name: 'HotelDashboard' }] });
@@ -216,13 +218,22 @@ export default function AddHotelScreen({ navigation }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <View style={styles.topHeader}>
-        <View>
-          <Text style={styles.mainTitle}>{user?.isGuest ? "Creare Cont & Hotel" : null}</Text>
-        </View>
-        <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={15} color="#ef4444" style={{marginRight: 4}}/>
-          <Text style={styles.logoutText}>Deconectare</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={() => {
+          if (user?.isGuest && showGuestForm){
+            setShowGuestForm(false);
+          }
+          }}
+        >
+          <Ionicons name="arrow-back" size={28} color="#1e293b" />
         </TouchableOpacity>
+        <View>
+          <Text style={styles.mainTitle}>{user?.isGuest ? " &  Creare Cont " : null}</Text>
+        </View>
+        <View style={{ width: 28 }} />
+        {/* <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={15} color="#ef4444" style={{marginRight: 4}}/>
+          <Text style={styles.logoutText}> Înapoi</Text>
+        </TouchableOpacity> */}
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
@@ -335,7 +346,7 @@ export default function AddHotelScreen({ navigation }) {
             </View>
           </View>
 
-          <Text style={styles.label}>Scurtă descriere (Pentru lista unitățiilor de cazare) *</Text>
+          <Text style={styles.label}>Scurtă descriere (Pentru lista unităților de cazare) *</Text>
           <TextInput style={[styles.input, styles.textAreaShort]} placeholder="Ex: Oaza de liniște pentru prietenul tău blănos..." multiline value={shortDesc} onChangeText={setShortDesc} />
 
           <Text style={styles.label}>Descriere detaliată (Pagina de detalii a unității) *</Text>
@@ -392,7 +403,7 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#10b981', padding: 10, borderRadius: 12, alignItems: 'center', marginVertical: -5, elevation: 5 },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
   promoContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 7, backgroundColor: '#f9fafb' },
-  promoTitle: { fontSize: 26, fontWeight: 'bold', color: '#1f2937', textAlign: 'center', marginBottom: 20 },
+  promoTitle: { fontSize: 26, fontWeight: 'bold', color: '#3e679f', textAlign: 'center', marginBottom: 9 },
   promoList: { alignSelf: 'flex-start', marginVertical: 20 },
   promoItem: { fontSize: 16, color: '#374151', marginBottom: 10, fontWeight: '600' },
   promoSubtitle: { fontSize: 15, color: '#6b7280', textAlign: 'center', marginBottom: 30, lineHeight: 22 },

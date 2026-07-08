@@ -4,6 +4,10 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import nodemailer from 'nodemailer';
+import { Expo } from 'expo-server-sdk';
+
+
+let expo = new Expo();
 
 const uploadDir = 'uploads';
 if (!fs.existsSync(uploadDir)) {
@@ -27,6 +31,7 @@ router.post('/create-hotel', upload.fields([
   { name: 'mainImage', maxCount: 1 }, 
   { name: 'gallery', maxCount: 15 }
 ]), async (req, res) => {
+  console.log(" ATENȚIE: S-a apelat CREATE-HOTEL (Adăugare)!");
   try {
     const { 
       userId, email, name, phone, website, 
@@ -268,7 +273,7 @@ router.put('/booking/:id/status', async (req, res) => {
 
     if (status === 'anulat') {
       const bookingInfo = await pool.query(`
-        SELECT b.start_date, b.end_date, b.pet_name, b.owner_email, h.name as hotel_name 
+        SELECT b.user_id, b.start_date, b.end_date, b.pet_name, b.owner_email, h.name as hotel_name 
         FROM bookings b
         JOIN hotels h ON b.hotel_id = h.id
         WHERE b.id = $1
@@ -299,6 +304,26 @@ router.put('/booking/:id/status', async (req, res) => {
           } catch (emailErr) {
             console.warn("Eroare la trimitere email anulare:", emailErr.message);
           }
+          try {
+          const userRes = await pool.query("SELECT expo_push_token FROM users WHERE id = $1", [booking.user_id]);
+          const pushToken = userRes.rows[0]?.expo_push_token;
+
+          if (pushToken && Expo.isExpoPushToken(pushToken)) {
+            let messages = [{
+              to: pushToken,
+              sound: 'default',
+              title: '⚠️ Rezervare Anulată',
+              body: `Rezervarea pentru ${booking.pet_name} la ${booking.hotel_name} a fost anulată de manager.`,
+              data: { redirectTo: 'MyBookings' },
+            }];
+            let chunks = expo.chunkPushNotifications(messages);
+            for (let chunk of chunks) {
+              await expo.sendPushNotificationsAsync(chunk);
+            }
+          }
+        } catch (pushErr) {
+          console.warn("Eroare la trimiterea push-ului de anulare:", pushErr.message);
+        }
         }
       }
     }
@@ -348,6 +373,7 @@ router.put('/update-hotel/:hotelId', upload.fields([
   { name: 'mainImage', maxCount: 1 }, 
   { name: 'gallery', maxCount: 15 }
 ]), async (req, res) => {
+  console.log("SUCCES: S-a apelat UPDATE-HOTEL (Editare) pentru ID:", req.params.hotelId);
   const hotelId = parseInt(req.params.hotelId);
   
   const { 

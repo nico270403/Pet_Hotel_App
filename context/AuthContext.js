@@ -27,12 +27,57 @@ export const AuthProvider = ({ children }) => {
   const loadUser = async () => {
     try {
       const stored = await AsyncStorage.getItem('userData');
-      if (stored) setUser(JSON.parse(stored));
+      if (stored) {
+      const parsedUser = JSON.parse(stored);
+      setUser(parsedUser);
+      if (parsedUser?.id) {
+        registerForPushNotificationsAsync(parsedUser.id); // reîmprospătează tokenul de fiecare dată
+      }
+    }
     } catch (e) {}
     setIsLoading(false);
   };
 
   const registerForPushNotificationsAsync = async (userId) => {
+  //   if (!Device.isDevice) {
+  //   console.log(" STOP: nu ești pe device fizic (emulator/simulator)");
+  //   return;
+  // }
+
+  // const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  // console.log(" Status permisiune existent:", existingStatus);
+  // let finalStatus = existingStatus;
+
+  // if (existingStatus !== 'granted') {
+  //   const { status } = await Notifications.requestPermissionsAsync();
+  //   finalStatus = status;
+  //   console.log(" Status permisiune după request:", finalStatus);
+  // }
+
+  // if (finalStatus !== 'granted') {
+  //   console.log(" STOP: permisiune refuzată");
+  //   return;
+  // }
+
+  // try {
+  //   const projectId =
+  //     Constants.expoConfig?.extra?.eas?.projectId ??
+  //     Constants.easConfig?.projectId;
+  //   console.log(" Project ID găsit:", projectId);
+
+  //   const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+  //   console.log(" TOKEN OBȚINUT:", token);
+
+  //   const res = await fetch(`${API_BASE_URL}/api/auth/update-push-token`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ userId, token })
+  //   });
+  //   const data = await res.json();
+  //   console.log(" Răspuns salvare token în DB:", data);
+  // } catch (e) {
+  //   console.log(" EROARE la obținerea/salvarea tokenului:", e.message);
+  // }
     if (!Device.isDevice) return;
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -144,6 +189,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     await AsyncStorage.removeItem('userData');
   };
+
+  
 
   return (
     <AuthContext.Provider

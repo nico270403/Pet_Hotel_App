@@ -96,6 +96,23 @@ export default function ChatScreen({ navigation, route }) {
     return { valid: true };
   };
 
+  const parseDateFromText = async (text) => {
+  const trimmed = text.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed; // deja corect, nu mai bate la server
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/chat/parse-date`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: trimmed })
+    });
+    const data = await res.json();
+    return data.date || null;
+  } catch (err) {
+    return null;
+  }
+};
+
   const formatDateForDisplay = (dateStr) => {
     if (!dateStr) return "Data invalidă";
     const date = new Date(dateStr);
@@ -266,25 +283,33 @@ export default function ChatScreen({ navigation, route }) {
         askQuestion("Pasul 6: În ce zi dorești să înceapă vacanța animăluțului tău (Check-in)? 📅\n(Scrie data sub forma AAAA-LL-ZZ, ex: 2026-07-15)");
         break;
       case 'checkIn':
-        const statusIn = checkDateValidity(trimmedInput);
+        const parsedIn = await parseDateFromText(trimmedInput);
+        if (!parsedIn) {
+          return askQuestion("Nu am înțeles data 😅. Poți scrie liber, ex: mâine, weekend, în 5 zile, sau exact AAAA-LL-ZZ (ex: 2026-07-15).");
+        }
+        const statusIn = checkDateValidity(parsedIn);
         if (!statusIn.valid) {
             if (statusIn.reason === "past") return askQuestion("Ups! 🙈 Data aceasta a trecut deja (avem nevoie de o mașină a timpului pentru asta 🕰️). Te rog alege o dată începând de astăzi înainte!");
             if (statusIn.reason === "not_exist") return askQuestion("Hmm... 🤔 Această dată nu există în calendar (poate luna are mai puține zile?). Te rog verifică și scrie din nou!");
             return askQuestion("Formatul nu este recunoscut 😅. Te rog scrie data folosind formatul AAAA-LL-ZZ (ex: 2026-07-15).");
         }
-        setReservationData(p => ({ ...p, checkIn: trimmedInput }));
+        setReservationData(p => ({ ...p, checkIn: parsedIn }));
         setReservationStep('checkOut');
         askQuestion("Pasul 7: Super! 🎉 Până în ce zi va rămâne la noi (Check-out)? 📅\n(Scrie data sub forma AAAA-LL-ZZ)");
         break;
       case 'checkOut':
-        const statusOut = checkDateValidity(trimmedInput, reservationData.checkIn);
+        const parsedOut = await parseDateFromText(trimmedInput);
+        if (!parsedOut) {
+          return askQuestion("Nu am înțeles data 😅. Poți scrie liber, ex: poimâine, weekend, sau exact AAAA-LL-ZZ.");
+        }
+        const statusOut = checkDateValidity(parsedOut, reservationData.checkIn);
         if (!statusOut.valid) {
             if (statusOut.reason === "past") return askQuestion("Această dată e în trecut. Te rog alege o dată viitoare!");
             if (statusOut.reason === "not_exist") return askQuestion("Hmm... 🤔 Această dată nu există calendaristic. Verifică te rog luna și ziua!");
             if (statusOut.reason === "before_checkin") return askQuestion("Atenție! 🐾 Data plecării (check-out) trebuie să fie neapărat după data de sosire (check-in). Încearcă din nou!");
             return askQuestion("Formatul nu este recunoscut 😅. Te rog respectă formatul AAAA-LL-ZZ.");
         }
-        setReservationData(p => ({ ...p, checkOut: trimmedInput }));
+        setReservationData(p => ({ ...p, checkOut: parsedOut }));
         setReservationStep('specialRequests');
         askQuestion("Pasul 8: Aproape gata! Ai anumite cerințe speciale pentru animalul tău? 🦴\n(ex: necesită medicamente, alergic la ceva, etc. - sau scrie pur și simplu 'fără')");
         break;

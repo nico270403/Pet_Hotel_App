@@ -7,6 +7,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StripeProvider } from '@stripe/stripe-react-native';
+import Constants from 'expo-constants';
 
 import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { initDatabase } from "./database";
@@ -195,7 +196,7 @@ export default function App() {
       
       <View style={styles.screenFrame}>
         <AuthProvider>
-          <StripeProvider publishableKey={process.env.STRIPE_PUBLISHABLE_KEY}>
+          <StripeProvider publishableKey={Constants.expoConfig.extra.STRIPE_PUBLISHABLE_KEY}>
             <NavigationContainer>
               <RootNavigator />
             </NavigationContainer>
